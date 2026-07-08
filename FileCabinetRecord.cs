@@ -4,7 +4,14 @@ using System.Text;
 
 namespace filecabinet
 {
-    internal class FileCabinetRecord
+    public class FileCabinetRecord
     {
+        public int Id { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public DateTime DateOfBirth { get; set; }
     }
 }
