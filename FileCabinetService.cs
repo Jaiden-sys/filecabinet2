@@ -16,13 +16,12 @@ namespace filecabinet
         public FileCabinetRecord[] GetRecords()
         {
             // TODO: добавьте реализацию метода
-            return new FileCabinetRecord[] { };
+            return Array.Empty<FileCabinetRecord>();
         }
 
         public int GetStat()
         {
-            // TODO: добавьте реализацию метода
-            return 0;
+            return this.list.Count;
         }
     }
 }
