@@ -15,14 +15,16 @@
         {
             new Tuple<string, Action<string>>("help", PrintHelp),
             new Tuple<string, Action<string>>("exit", Exit),
-            new Tuple <string, Action<string>>("stat", Stat) 
+            new Tuple <string, Action<string>>("stat", Stat),
+            new Tuple<string, Action<string>>("creste",Create)
         };
 
         private static string[][] helpMessages = new string[][]
         {
             new string[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
             new string[] { "exit", "exits the application", "The 'exit' command exits the application." },
-            new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records."}
+            new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records." },
+            new string[] {"create", "creates new record", "The 'create' command creates new record in app"}
         };
 
         public static void Main(string[] args)
@@ -102,6 +104,25 @@
         {
             var recordsCount = Program.fileCabinetService.GetStat();
             Console.WriteLine($"{recordsCount} record(s).");
+        }
+        private static void Create(string parameters)
+        {
+            if (!string.IsNullOrEmpty(parameters))
+            {
+                Console.Write("First name: ");
+                var firstName = Console.ReadLine();
+
+                Console.Write("Second name: ");
+                var secondName = Console.ReadLine();
+
+                Console.Write("Date of birth: ");
+                var dateOfBirth = DateTime.Parse(Console.ReadLine());
+
+                int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth);
+
+                Console.WriteLine($"Record #{recordId} has been created.");
+
+            }
         }
     }
 }
