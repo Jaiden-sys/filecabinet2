@@ -7,14 +7,17 @@ namespace filecabinet
     public class FileCabinetService
     {
         private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
-        public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth)
+        public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
         {
             var record = new FileCabinetRecord
             {
                 Id = this.list.Count + 1,
                 FirstName = firstName,
                 LastName = lastName,
-                DateOfBirth = dateOfBirth
+                DateOfBirth = dateOfBirth,
+                ArchiveId = archiveId,
+                Weight = weight,
+                Type = type
             };
             this.list.Add(record);
             return record.Id;

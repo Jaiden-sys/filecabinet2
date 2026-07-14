@@ -25,8 +25,8 @@
             new string[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
             new string[] { "exit", "exits the application", "The 'exit' command exits the application." },
             new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records." },
-            new string[] {"create", "creates new record", "The 'create' command creates new record in app"},
-            new string[] {"list", "shows list of all records created in app","The 'list' command shows the list of all records"}
+            new string[] { "create", "creates new record", "The 'create' command creates new record in app"},
+            new string[] { "list", "shows list of all records created in app","The 'list' command shows the list of all records"}
         };
 
         public static void Main(string[] args)
@@ -120,7 +120,17 @@
                 Console.Write("Date of birth: ");
                 var dateOfBirth = DateTime.Parse(Console.ReadLine());
 
-                int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth);
+                Console.Write("Archive id: ");
+                var archiveId = short.Parse(Console.ReadLine());
+
+                Console.Write("Weight: ");
+                var weight = decimal.Parse(Console.ReadLine());
+
+                Console.Write("Type(char): ");
+                var type = char.Parse(Console.ReadLine());
+                
+
+                int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth, archiveId, weight,type);
 
                 Console.WriteLine($"Record #{recordId} has been created.");
 
@@ -133,7 +143,7 @@
 
             foreach (var record in records)
             {
-                Console.WriteLine($"#{record.Id},{record.FirstName},{record.LastName},{record.DateOfBirth}");
+                Console.WriteLine($"#{record.Id},{record.FirstName},{record.LastName},{record.DateOfBirth},{record.ArchiveId},{record.Weight},{record.Type}");
             }
 
         }
