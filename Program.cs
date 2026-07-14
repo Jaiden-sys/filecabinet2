@@ -1,4 +1,4 @@
-﻿namespace FileCabinetApp
+﻿namespace filecabinet
 {
     public static class Program
     {
@@ -10,16 +10,23 @@
 
         private static bool isRunning = true;
 
+        private static FileCabinetService fileCabinetService = new FileCabinetService();
         private static Tuple<string, Action<string>>[] commands = new Tuple<string, Action<string>>[]
         {
             new Tuple<string, Action<string>>("help", PrintHelp),
             new Tuple<string, Action<string>>("exit", Exit),
+            new Tuple <string, Action<string>>("stat", Stat),
+            new Tuple<string, Action<string>>("create",Create),
+            new Tuple<string, Action<string>>("list", List)
         };
 
         private static string[][] helpMessages = new string[][]
         {
             new string[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
             new string[] { "exit", "exits the application", "The 'exit' command exits the application." },
+            new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records." },
+            new string[] { "create", "creates new record", "The 'create' command creates new record in app"},
+            new string[] { "list", "shows list of all records created in app","The 'list' command shows the list of all records"}
         };
 
         public static void Main(string[] args)
@@ -94,6 +101,51 @@
         {
             Console.WriteLine("Exiting an application...");
             isRunning = false;
+        }
+        private static void Stat(string parameters)
+        {
+            var recordsCount = Program.fileCabinetService.GetStat();
+            Console.WriteLine($"{recordsCount} record(s).");
+        }
+        private static void Create(string parameters)
+        {
+            if (!string.IsNullOrEmpty(parameters))
+            {
+                Console.Write("First name: ");
+                var firstName = Console.ReadLine();
+
+                Console.Write("Second name: ");
+                var secondName = Console.ReadLine();
+
+                Console.Write("Date of birth: ");
+                var dateOfBirth = DateTime.Parse(Console.ReadLine());
+
+                Console.Write("Archive id: ");
+                var archiveId = short.Parse(Console.ReadLine());
+
+                Console.Write("Weight: ");
+                var weight = decimal.Parse(Console.ReadLine());
+
+                Console.Write("Type(char): ");
+                var type = char.Parse(Console.ReadLine());
+                
+
+                int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth, archiveId, weight,type);
+
+                Console.WriteLine($"Record #{recordId} has been created.");
+
+            }
+
+        }
+        private static void List(string parameters)
+        {
+            var records = Program.fileCabinetService.GetRecords();
+
+            foreach (var record in records)
+            {
+                Console.WriteLine($"#{record.Id},{record.FirstName},{record.LastName},{record.DateOfBirth},{record.ArchiveId},{record.Weight},{record.Type}");
+            }
+
         }
     }
 }
