@@ -12,7 +12,7 @@ namespace filecabinet
 
         public string LastName { get; set; }
 
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public short ArchiveId { get; set; }
         public decimal Weight { get; set; }
         public char Type {  get; set; }
