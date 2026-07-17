@@ -17,7 +17,8 @@
             new Tuple<string, Action<string>>("exit", Exit),
             new Tuple <string, Action<string>>("stat", Stat),
             new Tuple<string, Action<string>>("create",Create),
-            new Tuple<string, Action<string>>("list", List)
+            new Tuple<string, Action<string>>("list", List),
+            new Tuple<string, Action<string>>("edit", Edit)
         };
 
         private static string[][] helpMessages = new string[][]
@@ -26,7 +27,8 @@
             new string[] { "exit", "exits the application", "The 'exit' command exits the application." },
             new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records." },
             new string[] { "create", "creates new record", "The 'create' command creates new record in app"},
-            new string[] { "list", "shows list of all records created in app","The 'list' command shows the list of all records"}
+            new string[] { "list", "shows list of all records created in app","The 'list' command shows the list of all records"},
+            new string[] {"edit", "edits chosen record", "The 'edit' command edits records"}
         };
 
         public static void Main(string[] args)
@@ -107,34 +109,72 @@
             var recordsCount = Program.fileCabinetService.GetStat();
             Console.WriteLine($"{recordsCount} record(s).");
         }
+        private static string GetInput()
+        {
+            string input;
+            do
+            {
+                input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.WriteLine("Error: empty input");
+                }
+            } while (string.IsNullOrWhiteSpace(input));
+            return input.Trim();
+        }
         private static void Create(string parameters)
         {
-            if (!string.IsNullOrEmpty(parameters))
+            //TODO: Rework dateOfBith, archiveId, weight, type checks
+            //Implement generic check
+            Console.Write("First name: ");
+            string firstName = GetInput();
+
+            Console.Write("Second name: ");
+            string secondName = GetInput();
+
+            DateTime dateOfBirth;
+            while (true)
             {
-                Console.Write("First name: ");
-                var firstName = Console.ReadLine();
-
-                Console.Write("Second name: ");
-                var secondName = Console.ReadLine();
-
-                Console.Write("Date of birth: ");
-                var dateOfBirth = DateTime.Parse(Console.ReadLine());
-
-                Console.Write("Archive id: ");
-                var archiveId = short.Parse(Console.ReadLine());
-
-                Console.Write("Weight: ");
-                var weight = decimal.Parse(Console.ReadLine());
-
-                Console.Write("Type(char): ");
-                var type = char.Parse(Console.ReadLine());
-                
-
-                int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth, archiveId, weight,type);
-
-                Console.WriteLine($"Record #{recordId} has been created.");
-
+                Console.Write("Date of birth, format (YYYY-MM-DD): ");
+                string input = Console.ReadLine();
+                if (DateTime.TryParse(input, out dateOfBirth)) break;
+                Console.WriteLine("Error: Invalid date format.");
             }
+
+
+            short archiveId;
+            while (true)
+            {
+                Console.Write("ArchiveId: ");
+                string input = Console.ReadLine();
+                if (short.TryParse(input, out archiveId)) break;
+                Console.WriteLine("Error: Invalid archiveId format.");
+            }
+
+            decimal weight;
+            while (true)
+            {
+                Console.Write("Weight: ");
+                string input = Console.ReadLine();
+                if (decimal.TryParse(input, out weight)) break;
+                Console.WriteLine("Error: Invalid weight format.");
+            }
+
+
+            char type;
+            while (true)
+            {
+                Console.Write("Type(char): ");
+                string input = Console.ReadLine();
+                if (char.TryParse(input, out type)) break;
+                Console.WriteLine("Error: Invalid char format.");
+            }
+
+            int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth, archiveId, weight, type);
+
+            Console.WriteLine($"Record #{recordId} has been created.");
+
+
 
         }
         private static void List(string parameters)
@@ -145,6 +185,63 @@
             {
                 Console.WriteLine($"#{record.Id},{record.FirstName},{record.LastName},{record.DateOfBirth},{record.ArchiveId},{record.Weight},{record.Type}");
             }
+
+        }
+
+        private static void Edit(string parameters)
+        {
+            int id;
+            while (true)
+            {
+                Console.WriteLine("Id of record: ");
+                string input = Console.ReadLine();
+                if (int.TryParse(input, out id) && id > 0 && fileCabinetService.GetRecords().Any(x => x.Id == id)) { break; } 
+                Console.WriteLine("Invalid id format");
+            }
+            Console.Write("New first name: ");
+            string firstName = GetInput();
+
+            Console.Write("New second name: ");
+            string secondName = GetInput();
+
+            DateTime dateOfBirth;
+            while (true)
+            {
+                Console.Write("New date of birth, format (YYYY-MM-DD): ");
+                string input = Console.ReadLine();
+                if (DateTime.TryParse(input, out dateOfBirth)) break;
+                Console.WriteLine("Error: Invalid date format.");
+            }
+
+
+            short archiveId;
+            while (true)
+            {
+                Console.Write("New archiveId: ");
+                string input = Console.ReadLine();
+                if (short.TryParse(input, out archiveId)) break;
+                Console.WriteLine("Error: Invalid archiveId format.");
+            }
+
+            decimal weight;
+            while (true)
+            {
+                Console.Write("New weight: ");
+                string input = Console.ReadLine();
+                if (decimal.TryParse(input, out weight)) break;
+                Console.WriteLine("Error: Invalid weight format.");
+            }
+
+
+            char type;
+            while (true)
+            {
+                Console.Write("New type(char): ");
+                string input = Console.ReadLine();
+                if (char.TryParse(input, out type)) break;
+                Console.WriteLine("Error: Invalid char format.");
+            }
+            fileCabinetService.EditRecord(id,firstName,secondName,dateOfBirth,archiveId,weight,type);
 
         }
     }
