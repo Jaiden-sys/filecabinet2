@@ -66,5 +66,11 @@ namespace filecabinet
             record.Type = type;
             Console.WriteLine($"#{record.Id} was updated");
         }
+
+        public FileCabinetRecord[] FindByFirstName(string firstName)
+        {
+            FileCabinetRecord[] foundedRecords = list.Where(x => x.FirstName == firstName).ToArray();
+            return foundedRecords;
+        }
     }
 }

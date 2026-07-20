@@ -18,7 +18,8 @@
             new Tuple <string, Action<string>>("stat", Stat),
             new Tuple<string, Action<string>>("create",Create),
             new Tuple<string, Action<string>>("list", List),
-            new Tuple<string, Action<string>>("edit", Edit)
+            new Tuple<string, Action<string>>("edit", Edit),
+            new Tuple<string, Action<string>>("find", Find)
         };
 
         private static string[][] helpMessages = new string[][]
@@ -28,7 +29,8 @@
             new string[] { "stat", "shows stat of records", "The 'stat' command prints the statistics of records." },
             new string[] { "create", "creates new record", "The 'create' command creates new record in app"},
             new string[] { "list", "shows list of all records created in app","The 'list' command shows the list of all records"},
-            new string[] {"edit", "edits chosen record", "The 'edit' command edits records"}
+            new string[] {"edit", "edits chosen record", "The 'edit' command edits records"},
+            new string[] {"find", "finds record", "The 'find' command allow you to find record"}
         };
 
         public static void Main(string[] args)
@@ -242,6 +244,10 @@
                 Console.WriteLine("Error: Invalid char format.");
             }
             fileCabinetService.EditRecord(id,firstName,secondName,dateOfBirth,archiveId,weight,type);
+
+        }
+        private static void Find(string parameters)
+        {
 
         }
     }
