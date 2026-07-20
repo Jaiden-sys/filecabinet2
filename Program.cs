@@ -1,4 +1,6 @@
-﻿namespace filecabinet
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace filecabinet
 {
     public static class Program
     {
@@ -192,14 +194,20 @@
 
         private static void Edit(string parameters)
         {
-            int id;
-            while (true)
+            int id = 0;
+            if (!string.IsNullOrWhiteSpace(parameters))
             {
-                Console.WriteLine("Id of record: ");
-                string input = Console.ReadLine();
-                if (int.TryParse(input, out id) && id > 0 && fileCabinetService.GetRecords().Any(x => x.Id == id)) { break; } 
-                Console.WriteLine("Invalid id format");
+
+                if (int.TryParse(parameters, out id))
+                { }
+                else
+                {
+                    Console.WriteLine("Invalid ID format.");
+                }
+                
             }
+
+            
             Console.Write("New first name: ");
             string firstName = GetInput();
 
@@ -243,7 +251,7 @@
                 if (char.TryParse(input, out type)) break;
                 Console.WriteLine("Error: Invalid char format.");
             }
-            fileCabinetService.EditRecord(id,firstName,secondName,dateOfBirth,archiveId,weight,type);
+            fileCabinetService.EditRecord(id, firstName, secondName, dateOfBirth, archiveId, weight, type);
 
         }
         private static void Find(string parameters)
