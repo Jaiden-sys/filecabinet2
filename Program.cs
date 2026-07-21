@@ -254,7 +254,7 @@ namespace filecabinet
         }
         private static void Find(string parameters)
         {
-            // 1. Защита от пустого ввода
+            
             if (string.IsNullOrWhiteSpace(parameters))
             {
                 Console.WriteLine("Usage: find <firstname|lastname> <value>");

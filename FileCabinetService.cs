@@ -7,6 +7,7 @@ namespace filecabinet
     public class FileCabinetService
     {
         private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
+        private readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
         {
             if(firstName == null) { throw new ArgumentNullException(nameof(firstName), "firstname cannot be null"); }
@@ -39,7 +40,8 @@ namespace filecabinet
                     Weight = weight,
                     Type = type
                 };
-                this.list.Add(record);
+                list.Add(record);
+                this.firstNameDictionary.Add(firstName,list);
                 return record.Id;
         }
 
@@ -56,15 +58,18 @@ namespace filecabinet
 
         public void EditRecord(int id, string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
         {
-            var record = this.list.Find(x => x.Id == id);
-            if (record == null) throw new ArgumentException("Cannot find record with current id ");
-            record.FirstName = firstName;
-            record.LastName = lastName;
-            record.DateOfBirth = dateOfBirth;
-            record.ArchiveId = archiveId;
-            record.Weight = weight;
-            record.Type = type;
-            Console.WriteLine($"#{record.Id} was updated");
+            List<FileCabinetRecord> foundList = firstNameDictionary.GetValueOrDefault(firstName);
+            foreach (var record in foundList) //NullReferenceException
+            {
+                if (record == null) throw new ArgumentException("Cannot find record with current id ");
+                record.FirstName = firstName;
+                record.LastName = lastName;
+                record.DateOfBirth = dateOfBirth;
+                record.ArchiveId = archiveId;
+                record.Weight = weight;
+                record.Type = type;
+                Console.WriteLine($"#{record.Id} was updated");
+            }
         }
 
         public FileCabinetRecord[] FindByField(string fieldName, string value)
