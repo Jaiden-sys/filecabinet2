@@ -204,59 +204,72 @@ namespace filecabinet
                 {
                     Console.WriteLine("Invalid ID format.");
                 }
-                
+
+
+
+
+                Console.Write("New first name: ");
+                string firstName = GetInput();
+
+                Console.Write("New second name: ");
+                string secondName = GetInput();
+
+                DateTime dateOfBirth;
+                while (true)
+                {
+                    Console.Write("New date of birth, format (YYYY-MM-DD): ");
+                    string input = Console.ReadLine();
+                    if (DateTime.TryParse(input, out dateOfBirth)) break;
+                    Console.WriteLine("Error: Invalid date format.");
+                }
+
+
+                short archiveId;
+                while (true)
+                {
+                    Console.Write("New archiveId: ");
+                    string input = Console.ReadLine();
+                    if (short.TryParse(input, out archiveId)) break;
+                    Console.WriteLine("Error: Invalid archiveId format.");
+                }
+
+                decimal weight;
+                while (true)
+                {
+                    Console.Write("New weight: ");
+                    string input = Console.ReadLine();
+                    if (decimal.TryParse(input, out weight)) break;
+                    Console.WriteLine("Error: Invalid weight format.");
+                }
+
+
+                char type;
+                while (true)
+                {
+                    Console.Write("New type(char): ");
+                    string input = Console.ReadLine();
+                    if (char.TryParse(input, out type)) break;
+                    Console.WriteLine("Error: Invalid char format.");
+                }
+                fileCabinetService.EditRecord(id, firstName, secondName, dateOfBirth, archiveId, weight, type);
             }
-
-            
-            Console.Write("New first name: ");
-            string firstName = GetInput();
-
-            Console.Write("New second name: ");
-            string secondName = GetInput();
-
-            DateTime dateOfBirth;
-            while (true)
-            {
-                Console.Write("New date of birth, format (YYYY-MM-DD): ");
-                string input = Console.ReadLine();
-                if (DateTime.TryParse(input, out dateOfBirth)) break;
-                Console.WriteLine("Error: Invalid date format.");
-            }
-
-
-            short archiveId;
-            while (true)
-            {
-                Console.Write("New archiveId: ");
-                string input = Console.ReadLine();
-                if (short.TryParse(input, out archiveId)) break;
-                Console.WriteLine("Error: Invalid archiveId format.");
-            }
-
-            decimal weight;
-            while (true)
-            {
-                Console.Write("New weight: ");
-                string input = Console.ReadLine();
-                if (decimal.TryParse(input, out weight)) break;
-                Console.WriteLine("Error: Invalid weight format.");
-            }
-
-
-            char type;
-            while (true)
-            {
-                Console.Write("New type(char): ");
-                string input = Console.ReadLine();
-                if (char.TryParse(input, out type)) break;
-                Console.WriteLine("Error: Invalid char format.");
-            }
-            fileCabinetService.EditRecord(id, firstName, secondName, dateOfBirth, archiveId, weight, type);
 
         }
         private static void Find(string parameters)
         {
-
+            string[] input = parameters.Split(' ');
+            if (!string.IsNullOrWhiteSpace(parameters))
+            {
+                if (input[0].ToLower() == "firstname")
+                {
+                    var foundedRecords = fileCabinetService.FindByFirstName(input[1]); 
+                    foreach(var foundedRecord in foundedRecords)
+                    {
+                        Console.WriteLine($"{foundedRecord.Id}, {foundedRecord.FirstName}, {foundedRecord.LastName}, {foundedRecord.DateOfBirth}, {foundedRecord.ArchiveId}, {foundedRecord.Weight},{foundedRecord.Type}");
+                    }
+                }
+                else { Console.WriteLine("Error"); }
+            }
         }
     }
 }

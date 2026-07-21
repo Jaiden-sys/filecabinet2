@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace filecabinet
@@ -8,7 +9,8 @@ namespace filecabinet
     {
         public int Id { get; set; }
 
-        public string FirstName { get; set; }
+        private string _firstName;
+        public string FirstName { get => _firstName; set => _firstName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value?.ToLower() ?? string.Empty); }
 
         public string LastName { get; set; }
 

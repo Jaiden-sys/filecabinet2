@@ -69,7 +69,7 @@ namespace filecabinet
 
         public FileCabinetRecord[] FindByFirstName(string firstName)
         {
-            FileCabinetRecord[] foundedRecords = list.Where(x => x.FirstName == firstName).ToArray();
+            FileCabinetRecord[] foundedRecords = list.Where(x => x.FirstName.ToLower() == firstName.ToLower()).ToArray();
             return foundedRecords;
         }
     }
