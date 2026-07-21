@@ -276,11 +276,15 @@ namespace filecabinet
 
             if (field == "firstname")
             {
-                results = fileCabinetService.FindByName("firstname", value);
+                results = fileCabinetService.FindByField("firstname", value);
             }
             else if (field == "lastname")
             {
-                results = fileCabinetService.FindByName("lastname", value);
+                results = fileCabinetService.FindByField("lastname", value);
+            }
+            else if (field == "dateofbirth")
+            {
+                results = fileCabinetService.FindByField("dateofbirth", value);
             }
             else
             {

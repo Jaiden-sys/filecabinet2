@@ -67,7 +67,7 @@ namespace filecabinet
             Console.WriteLine($"#{record.Id} was updated");
         }
 
-        public FileCabinetRecord[] FindByName(string fieldName, string value)
+        public FileCabinetRecord[] FindByField(string fieldName, string value)
         {
             switch (fieldName.ToLower())
             {
@@ -75,7 +75,8 @@ namespace filecabinet
                     return list.Where(x => x.FirstName.ToLower() == value.ToLower()).ToArray();
                 case "lastname":
                     return list.Where(x => x.LastName.ToLower() == value.ToLower()).ToArray();
-
+                case "dateofbirth":
+                    return list.Where(x => x.DateOfBirth.ToString(value) == value.ToLower()).ToArray();  
                 default:
                     throw new ArgumentException($"Field {fieldName} isn't supported");
             }
