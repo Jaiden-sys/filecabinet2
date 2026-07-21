@@ -205,9 +205,6 @@ namespace filecabinet
                     Console.WriteLine("Invalid ID format.");
                 }
 
-
-
-
                 Console.Write("New first name: ");
                 string firstName = GetInput();
 
@@ -257,19 +254,19 @@ namespace filecabinet
         }
         private static void Find(string parameters)
         {
+
             string[] input = parameters.Split(' ');
-            if (!string.IsNullOrWhiteSpace(parameters))
+            if (!string.IsNullOrWhiteSpace(parameters) && (input[0].ToLower() == "firstname" || input[0].ToLower() == "lastname") && !string.IsNullOrWhiteSpace(input[1]))
             {
-                if (input[0].ToLower() == "firstname")
+
+                var foundedRecords = fileCabinetService.FindByName(input[0], input[1]);
+                foreach (var foundedRecord in foundedRecords)
                 {
-                    var foundedRecords = fileCabinetService.FindByFirstName(input[1]); 
-                    foreach(var foundedRecord in foundedRecords)
-                    {
-                        Console.WriteLine($"{foundedRecord.Id}, {foundedRecord.FirstName}, {foundedRecord.LastName}, {foundedRecord.DateOfBirth}, {foundedRecord.ArchiveId}, {foundedRecord.Weight},{foundedRecord.Type}");
-                    }
+                    Console.WriteLine($"{foundedRecord.Id}, {foundedRecord.FirstName}, {foundedRecord.LastName}, {foundedRecord.DateOfBirth}, {foundedRecord.ArchiveId}, {foundedRecord.Weight},{foundedRecord.Type}");
                 }
-                else { Console.WriteLine("Error"); }
             }
+            else
+                throw new ArgumentException("Invalid input");
         }
     }
 }
