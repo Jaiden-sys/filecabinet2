@@ -254,19 +254,51 @@ namespace filecabinet
         }
         private static void Find(string parameters)
         {
-
-            string[] input = parameters.Split(' ');
-            if (!string.IsNullOrWhiteSpace(parameters) && (input[0].ToLower() == "firstname" || input[0].ToLower() == "lastname") && !string.IsNullOrWhiteSpace(input[1]))
+            // 1. Защита от пустого ввода
+            if (string.IsNullOrWhiteSpace(parameters))
             {
+                Console.WriteLine("Usage: find <firstname|lastname> <value>");
+                return;
+            }
 
-                var foundedRecords = fileCabinetService.FindByName(input[0], input[1]);
-                foreach (var foundedRecord in foundedRecords)
+            string[] parts = parameters.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2)
+            {
+                Console.WriteLine("Error: please specify both the field and the value.");
+                return;
+            }
+
+            string field = parts[0].ToLower();
+            string value = string.Join(" ", parts.Skip(1));
+
+            IEnumerable<FileCabinetRecord> results;
+
+            if (field == "firstname")
+            {
+                results = fileCabinetService.FindByName("firstname", value);
+            }
+            else if (field == "lastname")
+            {
+                results = fileCabinetService.FindByName("lastname", value);
+            }
+            else
+            {
+                Console.WriteLine($"Error: search by '{field}' is not supported. Use 'firstname' or 'lastname'.");
+                return;
+            }
+
+            if (results != null && results.Any())
+            {
+                foreach (var record in results)
                 {
-                    Console.WriteLine($"{foundedRecord.Id}, {foundedRecord.FirstName}, {foundedRecord.LastName}, {foundedRecord.DateOfBirth}, {foundedRecord.ArchiveId}, {foundedRecord.Weight},{foundedRecord.Type}");
+                    Console.WriteLine($"{record.Id}, {record.FirstName}, {record.LastName}, {record.DateOfBirth:d}, {record.ArchiveId}, {record.Weight}, {record.Type}");
                 }
             }
             else
-                throw new ArgumentException("Invalid input");
+            {
+                Console.WriteLine("No records found.");
+            }
         }
     }
 }
