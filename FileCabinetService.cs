@@ -9,6 +9,7 @@ namespace filecabinet
         private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
         private readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         private readonly Dictionary<string, List<FileCabinetRecord>> lastNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
+        private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
         {
             if (firstName == null) { throw new ArgumentNullException(nameof(firstName), "firstname cannot be null"); }
@@ -115,6 +116,7 @@ namespace filecabinet
 
             UpdateDictionary(firstNameDictionary, oldFirstName, firstName, recordToUpdate);
             UpdateDictionary(lastNameDictionary,oldLastName, lastName, recordToUpdate);
+            UpdateDictionary(dateOfBirthDictionary, oldBirthDate, dateOfBirth.ToString("yyyyMMdd"), recordToUpdate);
             
 
             Console.WriteLine($"#{recordToUpdate.Id} was updated");
@@ -133,7 +135,7 @@ namespace filecabinet
                 case "lastname":
                     return lastNameDictionary[value].ToArray();
                 case "dateofbirth":
-                    return list.Where(x => x.DateOfBirth.ToString(value) == value.ToLower()).ToArray();
+                    return dateOfBirthDictionary[value].ToArray();
                 default:
                     throw new ArgumentException($"Field {fieldName} isn't supported");
             }
