@@ -8,6 +8,7 @@ namespace filecabinet
     {
         private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
         private readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
+        private readonly Dictionary<string, List<FileCabinetRecord>> lastNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
         {
             if (firstName == null) { throw new ArgumentNullException(nameof(firstName), "firstname cannot be null"); }
@@ -64,45 +65,58 @@ namespace filecabinet
             return this.list.Count;
         }
 
-        public void EditRecord(int id, string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
+        private void UpdateDictionary(
+            Dictionary<string, List<FileCabinetRecord>> dictionary,
+            string oldKey,
+            string newKey,
+            FileCabinetRecord record)
         {
-            FileCabinetRecord? recordToUpdate = null;
-            string? oldFirstName = null;
-            foreach (var pair in firstNameDictionary)
+            if (oldKey == newKey) return;
+            
+            if(dictionary.TryGetValue(oldKey, out var oldList))
             {
-                var found = pair.Value.FirstOrDefault(r => r.Id == id);
-                if (found != null)
-                {
-                    recordToUpdate = found;
-                    oldFirstName = pair.Key;
-                    break;
-                }
+                oldList.Remove(record);
+                if(oldList.Count == 0) dictionary.Remove(oldKey);
             }
-            if (recordToUpdate == null) throw new ArgumentException("Record not found");
 
-            if(oldFirstName != firstName)
+            if(!dictionary.TryGetValue(newKey, out var newList))
             {
-                var oldList = firstNameDictionary[oldFirstName];
-                oldList.Remove(recordToUpdate);
-
-                if(oldList.Count == 0)
-                {
-                    firstNameDictionary.Remove(oldFirstName);
-                }
-
-                if(!firstNameDictionary.TryGetValue(firstName,out var newList))
-                {
-                    newList = new List<FileCabinetRecord>();
-                    firstNameDictionary.Add(firstName, newList);
-                }
-                newList.Add(recordToUpdate);
+                newList = new List<FileCabinetRecord>();
+                dictionary.Add(newKey, newList);
             }
+            newList.Add(record);
+        }
+        private FileCabinetRecord FindById(int id)
+        {
+            return list.FirstOrDefault(x => x.Id == id);
+        }
+        public void EditRecord(
+            int id, 
+            string firstName, 
+            string lastName, 
+            DateTime dateOfBirth, 
+            short archiveId, 
+            decimal weight, 
+            char type)
+        {
+            FileCabinetRecord? recordToUpdate = FindById(id);   
+            
+            if (recordToUpdate == null) throw new ArgumentException("Not found (id)");
+            string oldFirstName = recordToUpdate.FirstName;
+            string oldLastName = recordToUpdate.LastName;
+            string oldBirthDate = recordToUpdate.DateOfBirth.ToString("yyyyMMdd");
+
             recordToUpdate.FirstName = firstName;
             recordToUpdate.LastName = lastName;
             recordToUpdate.DateOfBirth = dateOfBirth;
             recordToUpdate.ArchiveId = archiveId;
             recordToUpdate.Weight = weight;
             recordToUpdate.Type = type;
+
+            UpdateDictionary(firstNameDictionary, oldFirstName, firstName, recordToUpdate);
+            UpdateDictionary(lastNameDictionary,oldLastName, lastName, recordToUpdate);
+            
+
             Console.WriteLine($"#{recordToUpdate.Id} was updated");
 
         }
@@ -113,10 +127,11 @@ namespace filecabinet
         {
             switch (fieldName.ToLower())
             {
+                
                 case "firstname":
-                    return list.Where(x => x.FirstName.ToLower() == value.ToLower()).ToArray();
+                    return firstNameDictionary[value].ToArray();
                 case "lastname":
-                    return list.Where(x => x.LastName.ToLower() == value.ToLower()).ToArray();
+                    return lastNameDictionary[value].ToArray();
                 case "dateofbirth":
                     return list.Where(x => x.DateOfBirth.ToString(value) == value.ToLower()).ToArray();
                 default:
