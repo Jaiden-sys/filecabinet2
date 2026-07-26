@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace filecabinet
@@ -13,6 +14,16 @@ namespace filecabinet
         private readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         private readonly DateTime limitedDateOfBirth = new DateTime(1950, 1, 1);
         private readonly CultureInfo culture = CultureInfo.InvariantCulture;
+        public record RecordRequest(
+            int Id,
+            string FirstName,
+            string LastName,
+            DateTime DateOfBirth,
+            short ArchiveId,
+            decimal Weight,
+            char Type);
+        
+        
         /// <summary>
         /// This method allows to create records
         /// </summary>
@@ -26,46 +37,46 @@ namespace filecabinet
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public int CreateRecord(string firstName, string lastName, DateTime dateOfBirth, short archiveId, decimal weight, char type)
+        public int CreateRecord(RecordRequest request)
         {
             if (list == null) { throw new ArgumentException("list is empty"); }
-            if (firstName == null) { throw new ArgumentNullException(nameof(firstName), "firstname cannot be null"); }
-            if (lastName == null) { throw new ArgumentNullException(nameof(lastName), "lastname cannot be null"); }
-            if (firstName.Length < 2 || firstName.Length > 60 || string.IsNullOrWhiteSpace(firstName)) throw new ArgumentException("Invalid first name", nameof(firstName));
+            if (request.FirstName == null) { throw new ArgumentNullException(nameof(request.FirstName), "firstname cannot be null"); }
+            if (request.LastName == null) { throw new ArgumentNullException(nameof(request.LastName), "lastname cannot be null"); }
+            if (request.FirstName.Length < 2 || request.FirstName.Length > 60 || string.IsNullOrWhiteSpace(request.FirstName)) throw new ArgumentException("Invalid first name", nameof(request.FirstName));
 
-            if (lastName.Length < 2 || lastName.Length > 60 || string.IsNullOrWhiteSpace(lastName)) throw new ArgumentException("Invalid last name", nameof(lastName));
+            if (request.LastName.Length < 2 || request.LastName.Length > 60 || string.IsNullOrWhiteSpace(request.LastName)) throw new ArgumentException("Invalid last name", nameof(request.LastName));
 
-            if (dateOfBirth == default(DateTime))
-                throw new ArgumentException("Date of birth is not specified", nameof(dateOfBirth));
+            if (request.DateOfBirth == default(DateTime))
+                throw new ArgumentException("Date of birth is not specified", nameof(request.DateOfBirth));
 
-            if (dateOfBirth < limitedDateOfBirth || dateOfBirth > DateTime.Today)
-                throw new ArgumentException("Invalid date of birth", nameof(dateOfBirth));
+            if (request.DateOfBirth < limitedDateOfBirth || request.DateOfBirth > DateTime.Today)
+                throw new ArgumentException("Invalid date of birth", nameof(request.DateOfBirth));
 
-            if (archiveId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(archiveId), "Archive ID must be positive");
+            if (request.ArchiveId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(request.ArchiveId), "Archive ID must be positive");
 
-            if (weight <= 0 || weight > 200)
-                throw new ArgumentOutOfRangeException(nameof(weight), "Weight must be between 0 and 200");
+            if (request.Weight <= 0 || request.Weight > 200)
+                throw new ArgumentOutOfRangeException(nameof(request.Weight), "Weight must be between 0 and 200");
 
-            if (type == ' ')
-                throw new ArgumentException("Type cannot be empty/space", nameof(type));
+            if (request.Type == ' ')
+                throw new ArgumentException("Type cannot be empty/space", nameof(request.Type));
             var record = new FileCabinetRecord
             {
                 Id = this.list.Count + 1,
-                FirstName = firstName,
-                LastName = lastName,
-                DateOfBirth = dateOfBirth,
-                ArchiveId = archiveId,
-                Weight = weight,
-                Type = type
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                DateOfBirth = request.DateOfBirth,
+                ArchiveId = request.ArchiveId,
+                Weight = request.Weight,
+                Type = request.Type
             };
 
             list.Add(record);
             //nameList is the List with records satisfying firstname
-            if (!firstNameDictionary.TryGetValue(firstName, out List<FileCabinetRecord>? nameList))
+            if (!firstNameDictionary.TryGetValue(request.FirstName, out List<FileCabinetRecord>? nameList))
             {
                 nameList = new List<FileCabinetRecord>();
-                firstNameDictionary.Add(firstName, nameList);
+                firstNameDictionary.Add(request.FirstName, nameList);
             }
             nameList.Add(record);
 
@@ -118,32 +129,25 @@ namespace filecabinet
             newList.Add(record);
         }
         private FileCabinetRecord? FindById(int id) => list.FirstOrDefault(x => x.Id == id);
-        public void EditRecord(
-            int id, 
-            string firstName, 
-            string lastName, 
-            DateTime dateOfBirth, 
-            short archiveId, 
-            decimal weight, 
-            char type)
+        public void EditRecord(RecordRequest request)
         {
-            FileCabinetRecord? recordToUpdate = FindById(id);   
+            FileCabinetRecord? recordToUpdate = FindById(request.Id);   
             
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");
             string? oldFirstName = recordToUpdate.FirstName;
             string? oldLastName = recordToUpdate.LastName;
             string? oldBirthDate = recordToUpdate.DateOfBirth.ToString("yyyyMMdd",culture);
 
-            recordToUpdate.FirstName = firstName;
-            recordToUpdate.LastName = lastName;
-            recordToUpdate.DateOfBirth = dateOfBirth;
-            recordToUpdate.ArchiveId = archiveId;
-            recordToUpdate.Weight = weight;
-            recordToUpdate.Type = type;
+            recordToUpdate.FirstName = request.FirstName;
+            recordToUpdate.LastName = request.LastName;
+            recordToUpdate.DateOfBirth = request.DateOfBirth;
+            recordToUpdate.ArchiveId = request.ArchiveId;
+            recordToUpdate.Weight = request.Weight;
+            recordToUpdate.Type = request.Type;
             if (oldFirstName == null || oldLastName == null) return;
-            UpdateDictionary(firstNameDictionary, oldFirstName, firstName, recordToUpdate);
-            UpdateDictionary(lastNameDictionary,oldLastName, lastName, recordToUpdate);
-            UpdateDictionary(dateOfBirthDictionary, oldBirthDate, dateOfBirth.ToString("yyyyMMdd", culture), recordToUpdate);
+            UpdateDictionary(firstNameDictionary, oldFirstName,request.FirstName , recordToUpdate);
+            UpdateDictionary(lastNameDictionary,oldLastName, request.LastName , recordToUpdate);
+            UpdateDictionary(dateOfBirthDictionary, oldBirthDate, request.DateOfBirth.ToString("yyyyMMdd", culture), recordToUpdate);
             
 
             Console.WriteLine($"#{recordToUpdate.Id} was updated");

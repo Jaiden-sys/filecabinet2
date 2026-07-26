@@ -174,8 +174,9 @@ namespace filecabinet
                 if (char.TryParse(input, out type)) break;
                 Console.WriteLine("Error: Invalid char format.");
             }
+            var request = new FileCabinetService.RecordRequest(0,firstName, secondName,dateOfBirth,archiveId,weight,type);
 
-            int recordId = fileCabinetService.CreateRecord(firstName, secondName, dateOfBirth, archiveId, weight, type);
+            int recordId = fileCabinetService.CreateRecord(request);
 
             Console.WriteLine($"Record #{recordId} has been created.");
 
@@ -210,7 +211,7 @@ namespace filecabinet
                 string firstName = GetInput();
 
                 Console.Write("New second name: ");
-                string secondName = GetInput();
+                string lastname = GetInput();
 
                 DateTime dateOfBirth;
                 while (true)
@@ -249,7 +250,8 @@ namespace filecabinet
                     if (char.TryParse(input, out type)) break;
                     Console.WriteLine("Error: Invalid char format.");
                 }
-                fileCabinetService.EditRecord(id, firstName, secondName, dateOfBirth, archiveId, weight, type);
+                var request = new FileCabinetService.RecordRequest(id,firstName,lastname,dateOfBirth,archiveId,weight,type);
+                fileCabinetService.EditRecord(request);
             }
 
         }
