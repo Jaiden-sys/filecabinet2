@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata.Ecma335;
+﻿using System.Globalization;
+using System.Reflection.Metadata.Ecma335;
 
 namespace filecabinet
 {
@@ -115,7 +116,7 @@ namespace filecabinet
         }
         private static string GetInput()
         {
-            string input;
+            string? input;
             do
             {
                 input = Console.ReadLine();
@@ -126,7 +127,7 @@ namespace filecabinet
             } while (string.IsNullOrWhiteSpace(input));
             return input.Trim();
         }
-        private static void Create(string parameters)
+       static void Create(string parameters)
         {
             //TODO: Rework dateOfBith, archiveId, weight, type checks
             //Implement generic check
@@ -140,7 +141,7 @@ namespace filecabinet
             while (true)
             {
                 Console.Write("Date of birth, format (YYYY-MM-DD): ");
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
                 if (DateTime.TryParse(input, out dateOfBirth)) break;
                 Console.WriteLine("Error: Invalid date format.");
             }
@@ -150,7 +151,7 @@ namespace filecabinet
             while (true)
             {
                 Console.Write("ArchiveId: ");
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
                 if (short.TryParse(input, out archiveId)) break;
                 Console.WriteLine("Error: Invalid archiveId format.");
             }
@@ -159,7 +160,7 @@ namespace filecabinet
             while (true)
             {
                 Console.Write("Weight: ");
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
                 if (decimal.TryParse(input, out weight)) break;
                 Console.WriteLine("Error: Invalid weight format.");
             }
@@ -169,7 +170,7 @@ namespace filecabinet
             while (true)
             {
                 Console.Write("Type(char): ");
-                string input = Console.ReadLine();
+                string? input = Console.ReadLine();
                 if (char.TryParse(input, out type)) break;
                 Console.WriteLine("Error: Invalid char format.");
             }
@@ -215,7 +216,7 @@ namespace filecabinet
                 while (true)
                 {
                     Console.Write("New date of birth, format (YYYY-MM-DD): ");
-                    string input = Console.ReadLine();
+                    string? input = Console.ReadLine();
                     if (DateTime.TryParse(input, out dateOfBirth)) break;
                     Console.WriteLine("Error: Invalid date format.");
                 }
@@ -225,7 +226,7 @@ namespace filecabinet
                 while (true)
                 {
                     Console.Write("New archiveId: ");
-                    string input = Console.ReadLine();
+                    string? input = Console.ReadLine();
                     if (short.TryParse(input, out archiveId)) break;
                     Console.WriteLine("Error: Invalid archiveId format.");
                 }
@@ -234,7 +235,7 @@ namespace filecabinet
                 while (true)
                 {
                     Console.Write("New weight: ");
-                    string input = Console.ReadLine();
+                    string? input = Console.ReadLine();
                     if (decimal.TryParse(input, out weight)) break;
                     Console.WriteLine("Error: Invalid weight format.");
                 }
@@ -244,7 +245,7 @@ namespace filecabinet
                 while (true)
                 {
                     Console.Write("New type(char): ");
-                    string input = Console.ReadLine();
+                    string? input = Console.ReadLine();
                     if (char.TryParse(input, out type)) break;
                     Console.WriteLine("Error: Invalid char format.");
                 }
@@ -269,7 +270,7 @@ namespace filecabinet
                 return;
             }
 
-            string field = parts[0].ToLower();
+            string field = parts[0].ToLower(CultureInfo.InvariantCulture);
             string value = string.Join(" ", parts.Skip(1));
 
             IEnumerable<FileCabinetRecord> results;
