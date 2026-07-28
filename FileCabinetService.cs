@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace filecabinet
 {
-    public abstract class FileCabinetService
+    public class FileCabinetService
     {
         private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
@@ -14,7 +14,7 @@ namespace filecabinet
         protected IRecordValidator validator;
         public FileCabinetService(IRecordValidator validator) { this.validator = validator; }
         
-
+        
 
         /// <summary>
         /// This method allows to create records
@@ -31,7 +31,7 @@ namespace filecabinet
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public int CreateRecord(RecordRequest request)
         {
-            validator.ValidateParameters(request);
+            this.validator.ValidateParameters(request);
             var record = new FileCabinetRecord
             {
                 Id = this.list.Count + 1,
@@ -49,6 +49,8 @@ namespace filecabinet
             {
                 nameList = new List<FileCabinetRecord>();
                 firstNameDictionary.Add(request.FirstName, nameList);
+                lastNameDictionary.Add(request.LastName, nameList);
+                dateOfBirthDictionary.Add(request.DateOfBirth.ToString(culture), nameList);
             }
             nameList.Add(record);
 
@@ -103,6 +105,7 @@ namespace filecabinet
         private FileCabinetRecord? FindById(int id) => list.FirstOrDefault(x => x.Id == id);
         public void EditRecord(RecordRequest request)
         {
+            if(request == null) throw new ArgumentNullException(nameof(request));
             FileCabinetRecord? recordToUpdate = FindById(request.Id);
 
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");
@@ -130,19 +133,44 @@ namespace filecabinet
 
         public FileCabinetRecord[] FindByField(string fieldName, string value)
         {
-            switch (fieldName.ToLower(culture))
+            if (string.IsNullOrWhiteSpace(fieldName))
             {
-
-                case "firstname":
-                    return firstNameDictionary[value].ToArray();
-                case "lastname":
-                    return lastNameDictionary[value].ToArray();
-                case "dateofbirth":
-                    return dateOfBirthDictionary[value].ToArray();
-                default:
-                    throw new ArgumentException($"Field {fieldName} isn't supported");
+                throw new ArgumentNullException(nameof(fieldName), "Имя поля не может быть пустым");
             }
 
+            if (value == null)
+            {
+                return Array.Empty<FileCabinetRecord>();
+            }
+
+            switch (fieldName.ToLowerInvariant())
+            {
+                case "firstname":
+                    if (firstNameDictionary.TryGetValue(value, out var firstNameList))
+                    {
+                        return firstNameList.ToArray();
+                    }
+                    break;
+
+                case "lastname":
+                    if (lastNameDictionary.TryGetValue(value, out var lastNameList))
+                    {
+                        return lastNameList.ToArray();
+                    }
+                    break;
+
+                case "dateofbirth":
+                    if (dateOfBirthDictionary.TryGetValue(value, out var dateList))
+                    {
+                        return dateList.ToArray();
+                    }
+                    break;
+
+                default:
+                    throw new ArgumentException($"Field '{fieldName}' isn't supported", nameof(fieldName));
+            }
+            return Array.Empty<FileCabinetRecord>();
         }
+
     }
 }

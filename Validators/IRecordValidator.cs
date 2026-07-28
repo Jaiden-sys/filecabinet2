@@ -5,6 +5,6 @@ namespace filecabinet
 {
     public interface IRecordValidator
     {
-        void ValidateParameters(RecordRequest request);
+        public void ValidateParameters(RecordRequest request);
     }
 }
