@@ -13,7 +13,7 @@ namespace filecabinet
 
         private static bool isRunning = true;
 
-        private static FileCabinetService fileCabinetService = new FileCabinetCustomService();
+        private static FileCabinetService fileCabinetService = new FileCabinetDefaultService();
         private static Tuple<string, Action<string>>[] commands = new Tuple<string, Action<string>>[]
         {
             new Tuple<string, Action<string>>("help", PrintHelp),
@@ -174,7 +174,7 @@ namespace filecabinet
                 if (char.TryParse(input, out type)) break;
                 Console.WriteLine("Error: Invalid char format.");
             }
-            var request = new FileCabinetService.RecordRequest(0,firstName, secondName,dateOfBirth,archiveId,weight,type);
+            var request = new RecordRequest(0,firstName, secondName,dateOfBirth,archiveId,weight,type);
 
             int recordId = fileCabinetService.CreateRecord(request);
 
@@ -250,7 +250,7 @@ namespace filecabinet
                     if (char.TryParse(input, out type)) break;
                     Console.WriteLine("Error: Invalid char format.");
                 }
-                var request = new FileCabinetService.RecordRequest(id,firstName,lastname,dateOfBirth,archiveId,weight,type);
+                var request = new RecordRequest(id,firstName,lastname,dateOfBirth,archiveId,weight,type);
                 fileCabinetService.EditRecord(request);
             }
 

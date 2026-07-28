@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace filecabinet
 {
-    public class FileCabinetDefaultSevice : FileCabinetService
+    public class DefaultValidator : IRecordValidator
     {
-        protected override void ValidateParameters(RecordRequest request)
+        public void ValidateParameters(RecordRequest request)
         {
             if (request.FirstName == null) { throw new ArgumentNullException(nameof(request.FirstName), "firstname cannot be null"); }
             if (request.LastName == null) { throw new ArgumentNullException(nameof(request.LastName), "lastname cannot be null"); }
@@ -18,7 +17,7 @@ namespace filecabinet
             if (request.DateOfBirth == default(DateTime))
                 throw new ArgumentException("Date of birth is not specified", nameof(request.DateOfBirth));
 
-            if (request.DateOfBirth < limitedDateOfBirth || request.DateOfBirth > DateTime.Today)
+            if (request.DateOfBirth < new DateTime(1950, 1, 1) || request.DateOfBirth > DateTime.Today)
                 throw new ArgumentException("Invalid date of birth", nameof(request.DateOfBirth));
 
             if (request.ArchiveId <= 0)
@@ -29,7 +28,6 @@ namespace filecabinet
 
             if (request.Type == ' ')
                 throw new ArgumentException("Type cannot be empty/space", nameof(request.Type));
-            
         }
     }
 }

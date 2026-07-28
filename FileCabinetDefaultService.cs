@@ -1,16 +1,15 @@
-﻿using filecabinet;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace filecabinet
 {
-    public class FileCabinetCustomService : FileCabinetService
+    public class FileCabinetDefaultService : FileCabinetService
     {
         protected override IRecordValidator CreateValidator()
         {
-            throw new NotImplementedException();
+            return new DefaultValidator(); 
         }
     }
 }
-

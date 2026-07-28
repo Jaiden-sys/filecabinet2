@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Globalization;
 
 namespace filecabinet
 {
@@ -14,17 +10,10 @@ namespace filecabinet
         protected readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly DateTime limitedDateOfBirth = new DateTime(1950, 1, 1);
         protected readonly CultureInfo culture = CultureInfo.InvariantCulture;
-        public record RecordRequest(
-            int Id,
-            string FirstName,
-            string LastName,
-            DateTime DateOfBirth,
-            short ArchiveId,
-            decimal Weight,
-            char Type);
-        protected abstract void ValidateParameters(RecordRequest request);
-        
-        
+
+        protected abstract IRecordValidator CreateValidator();
+
+
         /// <summary>
         /// This method allows to create records
         /// </summary>
@@ -40,7 +29,8 @@ namespace filecabinet
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public int CreateRecord(RecordRequest request)
         {
-            ValidateParameters(request);
+            var validator = CreateValidator();
+            validator.ValidateParameters(request);
             var record = new FileCabinetRecord
             {
                 Id = this.list.Count + 1,
@@ -77,10 +67,10 @@ namespace filecabinet
         /// <returns></returns>
         public int GetStat()
         {
-            if ( list.Count == 0) return 0;
+            if (list.Count == 0) return 0;
             else return this.list.Count;
         }
-        
+
         /// <summary>
         /// Updates dictionary using dictionary with grouping
         /// </summary>
@@ -95,14 +85,14 @@ namespace filecabinet
             FileCabinetRecord record)
         {
             if (oldKey == newKey) return;
-            
-            if(dictionary.TryGetValue(oldKey, out var oldList))
+
+            if (dictionary.TryGetValue(oldKey, out var oldList))
             {
                 oldList.Remove(record);
-                if(oldList.Count == 0) dictionary.Remove(oldKey);
+                if (oldList.Count == 0) dictionary.Remove(oldKey);
             }
 
-            if(!dictionary.TryGetValue(newKey, out var newList))
+            if (!dictionary.TryGetValue(newKey, out var newList))
             {
                 newList = new List<FileCabinetRecord>();
                 dictionary.Add(newKey, newList);
@@ -112,12 +102,12 @@ namespace filecabinet
         private FileCabinetRecord? FindById(int id) => list.FirstOrDefault(x => x.Id == id);
         public void EditRecord(RecordRequest request)
         {
-            FileCabinetRecord? recordToUpdate = FindById(request.Id);   
-            
+            FileCabinetRecord? recordToUpdate = FindById(request.Id);
+
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");
             string? oldFirstName = recordToUpdate.FirstName;
             string? oldLastName = recordToUpdate.LastName;
-            string? oldBirthDate = recordToUpdate.DateOfBirth.ToString("yyyyMMdd",culture);
+            string? oldBirthDate = recordToUpdate.DateOfBirth.ToString("yyyyMMdd", culture);
 
             recordToUpdate.FirstName = request.FirstName;
             recordToUpdate.LastName = request.LastName;
@@ -126,22 +116,22 @@ namespace filecabinet
             recordToUpdate.Weight = request.Weight;
             recordToUpdate.Type = request.Type;
             if (oldFirstName == null || oldLastName == null) return;
-            UpdateDictionary(firstNameDictionary, oldFirstName,request.FirstName , recordToUpdate);
-            UpdateDictionary(lastNameDictionary,oldLastName, request.LastName , recordToUpdate);
+            UpdateDictionary(firstNameDictionary, oldFirstName, request.FirstName, recordToUpdate);
+            UpdateDictionary(lastNameDictionary, oldLastName, request.LastName, recordToUpdate);
             UpdateDictionary(dateOfBirthDictionary, oldBirthDate, request.DateOfBirth.ToString("yyyyMMdd", culture), recordToUpdate);
-            
+
 
             Console.WriteLine($"#{recordToUpdate.Id} was updated");
 
         }
-            
-        
+
+
 
         public FileCabinetRecord[] FindByField(string fieldName, string value)
         {
             switch (fieldName.ToLower(culture))
             {
-                
+
                 case "firstname":
                     return firstNameDictionary[value].ToArray();
                 case "lastname":
