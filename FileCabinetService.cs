@@ -1,17 +1,19 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace filecabinet
 {
     public abstract class FileCabinetService
     {
-        protected readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
+        private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> lastNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly DateTime limitedDateOfBirth = new DateTime(1950, 1, 1);
         protected readonly CultureInfo culture = CultureInfo.InvariantCulture;
-
-        protected abstract IRecordValidator CreateValidator();
+        protected IRecordValidator validator;
+        public FileCabinetService(IRecordValidator validator) { this.validator = validator; }
+        
 
 
         /// <summary>
@@ -29,7 +31,6 @@ namespace filecabinet
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public int CreateRecord(RecordRequest request)
         {
-            var validator = CreateValidator();
             validator.ValidateParameters(request);
             var record = new FileCabinetRecord
             {

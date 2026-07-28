@@ -7,10 +7,7 @@ namespace filecabinet
 {
     public class FileCabinetCustomService : FileCabinetService
     {
-        protected override IRecordValidator CreateValidator()
-        {
-            throw new NotImplementedException();
-        }
+        public FileCabinetCustomService() : base(new CustomValidator()) { }
     }
 }
 
