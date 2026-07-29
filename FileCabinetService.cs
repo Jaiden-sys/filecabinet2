@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace filecabinet
 {
-    public class FileCabinetService
+    public class FileCabinetService : IFileCabinetService
     {
         private readonly List<FileCabinetRecord> _list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
@@ -14,8 +14,8 @@ namespace filecabinet
         protected readonly CultureInfo culture = CultureInfo.InvariantCulture;
         protected IRecordValidator validator;
         public FileCabinetService(IRecordValidator validator) { this.validator = validator; }
-        
-        
+
+
 
         /// <summary>
         /// This method allows to create records
@@ -106,7 +106,7 @@ namespace filecabinet
         private FileCabinetRecord? FindById(int id) => _list.FirstOrDefault(x => x.Id == id);
         public void EditRecord(RecordRequest request)
         {
-            if(request == null) throw new ArgumentNullException(nameof(request));
+            if (request == null) throw new ArgumentNullException(nameof(request));
             FileCabinetRecord? recordToUpdate = FindById(request.Id);
 
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");

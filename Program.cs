@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+
 namespace filecabinet
 {
     public static class Program
@@ -14,7 +15,7 @@ namespace filecabinet
         private static bool isRunning = true;
 
         static IRecordValidator validator = new DefaultValidator();
-        private static FileCabinetService fileCabinetService = new FileCabinetService(validator);
+        private static IFileCabinetService fileCabinetService = new FileCabinetService(validator);
         
         private static Tuple<string, Action<string>>[] commands = new Tuple<string, Action<string>>[]
         {
