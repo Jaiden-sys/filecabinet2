@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel;
+using System.Globalization;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 
@@ -117,67 +118,140 @@ namespace filecabinet
             var recordsCount = Program.fileCabinetService.GetStat();
             Console.WriteLine($"{recordsCount} record(s).");
         }
-        private static string GetInput()
+        private static T ReadInput<T>(Func<string, Tuple<bool, string, T>> converter, Func<T, Tuple<bool, string>> validator)
         {
-            string? input;
             do
             {
-                input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
+                T value;
+
+                var input = Console.ReadLine();
+                var conversionResult = converter(input);
+
+                if (!conversionResult.Item1)
                 {
-                    Console.WriteLine("Error: empty input");
+                    Console.WriteLine($"Conversion failed: {conversionResult.Item2}. Please, correct your input.");
+                    continue;
                 }
-            } while (string.IsNullOrWhiteSpace(input));
-            return input.Trim();
+
+                value = conversionResult.Item3;
+
+                var validationResult = validator(value);
+                if (!validationResult.Item1)
+                {
+                    Console.WriteLine($"Validation failed: {validationResult.Item2}. Please, correct your input.");
+                    continue;
+                }
+
+                return value;
+            }
+            while (true);
         }
-       static void Create(string parameters)
+
+
+        private static Func<string, Tuple<bool, string, string>> stringConverter = input =>
         {
-            //TODO: Rework dateOfBith, archiveId, weight, type checks
-            //Implement generic check
+            if (!string.IsNullOrWhiteSpace(input)) return Tuple.Create(true, string.Empty, input.Trim());
+            return Tuple.Create(false, "Invalid string format", string.Empty );
+        };
+        private static Func<string, Tuple<bool, string>> nameValidator = name =>
+        {
+            if (name.Length >= 2 && name.Length <= 50)
+                return Tuple.Create(true, string.Empty);
+            return Tuple.Create(false, "Name lenght must be between 2 and 50");
+        };
+
+
+        private static Func<string, Tuple<bool, string, decimal>> weightConverter = input =>
+        {
+            if (decimal.TryParse(input, out var result))
+                return Tuple.Create(true, string.Empty, result);
+            return Tuple.Create(false, "Invalid decimal format", 0m);
+        };
+        private static Func<decimal, Tuple<bool, string>> weightValidator = weight => 
+        {
+            if (weight >= 0 && weight <= 200)
+                return Tuple.Create(true, string.Empty);
+            return Tuple.Create(false, "Weight must be between 0 and 200");
+        };
+
+
+        private static Func<string, Tuple<bool, string, DateTime>> dateTimeConverter = input =>
+        {
+            if (DateTime.TryParse(input, out DateTime result))
+            {
+                return Tuple.Create(true, string.Empty, result);
+            }
+
+            return Tuple.Create(false, "Invalid date format", default(DateTime));
+        };
+        private static Func<DateTime, Tuple<bool, string>> dateTimeValidator = dateTime =>
+        {
+            if(dateTime > new DateTime(1950, 1, 1) && dateTime < DateTime.Today)
+            {
+                return Tuple.Create(true, dateTime.ToString(CultureInfo.InvariantCulture));
+            }
+            return Tuple.Create(false, "Date must been between 1950 and today");
+        };
+
+
+        private static Func<string, Tuple<bool, string, short>> archiveIdConverter = input =>
+        {
+            if(short.TryParse(input, out short result))
+            {
+                return Tuple.Create(true, string.Empty, result);
+            }
+            return Tuple.Create(false,"Invalid archiveid",default(short));
+        };
+        private static Func<short, Tuple<bool, string>> archiveIdValidator = archiveId =>
+        {
+            if (archiveId >= 0)
+            {
+                return Tuple.Create(true, string.Empty);
+            }
+            return Tuple.Create(false, "invalid archiveid");
+        };
+
+
+        private static Func<string, Tuple<bool, string, char>> charConverter = input =>
+        {
+            if (char.TryParse(input, out char result))
+            {
+                return Tuple.Create(true, string.Empty, result);
+            }
+            return Tuple.Create(false, "Invalid type", default(char));
+        };
+        private static Func<char, Tuple<bool, string>> charValidator = type =>
+        {
+            if (type != ' ')
+            {
+                return Tuple.Create(true, string.Empty);
+            }
+            return Tuple.Create(false, "invalid type");
+        };
+
+        static void Create(string parameters)
+        {
+            
             Console.Write("First name: ");
-            string firstName = GetInput();
+            string firstName = ReadInput(stringConverter, nameValidator);
 
             Console.Write("Second name: ");
-            string secondName = GetInput();
+            string lastname = ReadInput(stringConverter, nameValidator);
 
-            DateTime dateOfBirth;
-            while (true)
-            {
-                Console.Write("Date of birth, format (YYYY-MM-DD): ");
-                string? input = Console.ReadLine();
-                if (DateTime.TryParse(input, out dateOfBirth)) break;
-                Console.WriteLine("Error: Invalid date format.");
-            }
+            Console.Write("Date of birth, format (YYYY-MM-DD): ");
+            DateTime dateOfBirth = ReadInput(dateTimeConverter, dateTimeValidator);
 
+            Console.Write("ArchiveId: ");
+            short archiveId = ReadInput(archiveIdConverter, archiveIdValidator);
 
-            short archiveId;
-            while (true)
-            {
-                Console.Write("ArchiveId: ");
-                string? input = Console.ReadLine();
-                if (short.TryParse(input, out archiveId)) break;
-                Console.WriteLine("Error: Invalid archiveId format.");
-            }
-
-            decimal weight;
-            while (true)
-            {
-                Console.Write("Weight: ");
-                string? input = Console.ReadLine();
-                if (decimal.TryParse(input, out weight)) break;
-                Console.WriteLine("Error: Invalid weight format.");
-            }
+            Console.Write("Weight: ");
+            decimal weight = ReadInput(weightConverter, weightValidator);
 
 
-            char type;
-            while (true)
-            {
-                Console.Write("Type(char): ");
-                string? input = Console.ReadLine();
-                if (char.TryParse(input, out type)) break;
-                Console.WriteLine("Error: Invalid char format.");
-            }
-            var request = new RecordRequest(0,firstName, secondName,dateOfBirth,archiveId,weight,type);
+            Console.Write("Type(char): ");
+            char type = ReadInput(charConverter, charValidator);
+            
+            var request = new RecordRequest(0,firstName, lastname, dateOfBirth,archiveId,weight,type);
 
             int recordId = fileCabinetService.CreateRecord(request);
 
@@ -200,62 +274,35 @@ namespace filecabinet
         private static void Edit(string parameters)
         {
             int id = 0;
-            if (!string.IsNullOrWhiteSpace(parameters))
+            if (int.TryParse(parameters, out id))
+            { }
+            else
             {
-
-                if (int.TryParse(parameters, out id))
-                { }
-                else
-                {
-                    Console.WriteLine("Invalid ID format.");
-                }
-
-                Console.Write("New first name: ");
-                string firstName = GetInput();
-
-                Console.Write("New second name: ");
-                string lastname = GetInput();
-
-                DateTime dateOfBirth;
-                while (true)
-                {
-                    Console.Write("New date of birth, format (YYYY-MM-DD): ");
-                    string? input = Console.ReadLine();
-                    if (DateTime.TryParse(input, out dateOfBirth)) break;
-                    Console.WriteLine("Error: Invalid date format.");
-                }
-
-
-                short archiveId;
-                while (true)
-                {
-                    Console.Write("New archiveId: ");
-                    string? input = Console.ReadLine();
-                    if (short.TryParse(input, out archiveId)) break;
-                    Console.WriteLine("Error: Invalid archiveId format.");
-                }
-
-                decimal weight;
-                while (true)
-                {
-                    Console.Write("New weight: ");
-                    string? input = Console.ReadLine();
-                    if (decimal.TryParse(input, out weight)) break;
-                    Console.WriteLine("Error: Invalid weight format.");
-                }
-
-
-                char type;
-                while (true)
-                {
-                    Console.Write("New type(char): ");
-                    string? input = Console.ReadLine();
-                    if (char.TryParse(input, out type)) break;
-                    Console.WriteLine("Error: Invalid char format.");
-                }
-                var request = new RecordRequest(id,firstName,lastname,dateOfBirth,archiveId,weight,type);
-                fileCabinetService.EditRecord(request);
+                Console.WriteLine("Invalid ID format.");
+                return;
             }
+            Console.Write("New first name: ");
+            string firstName = ReadInput(stringConverter, nameValidator);
+
+            Console.Write("New second name: ");
+            string lastname = ReadInput(stringConverter, nameValidator);
+
+            Console.Write("New date of birth, format (YYYY-MM-DD): ");
+            DateTime dateOfBirth = ReadInput(dateTimeConverter, dateTimeValidator);
+
+            Console.Write("New archiveId: ");
+            short archiveId = ReadInput(archiveIdConverter, archiveIdValidator);
+
+            Console.Write("New weight: ");
+            decimal weight = ReadInput(weightConverter, weightValidator);
+
+
+            Console.Write("New type(char): ");
+            char type = ReadInput(charConverter, charValidator);
+
+            var request = new RecordRequest(id,firstName,lastname,dateOfBirth,archiveId,weight,type);
+                fileCabinetService.EditRecord(request);
+            
 
         }
         private static void Find(string parameters)
