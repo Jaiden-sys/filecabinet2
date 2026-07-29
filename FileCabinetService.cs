@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace filecabinet
 {
     public class FileCabinetService
     {
-        private readonly List<FileCabinetRecord> list = new List<FileCabinetRecord>();
+        private readonly List<FileCabinetRecord> _list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> lastNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> dateOfBirthDictionary = new Dictionary<string, List<FileCabinetRecord>>();
@@ -34,7 +35,7 @@ namespace filecabinet
             this.validator.ValidateParameters(request);
             var record = new FileCabinetRecord
             {
-                Id = this.list.Count + 1,
+                Id = this._list.Count + 1,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 DateOfBirth = request.DateOfBirth,
@@ -43,7 +44,7 @@ namespace filecabinet
                 Type = request.Type
             };
 
-            list.Add(record);
+            _list.Add(record);
             //nameList is the List with records satisfying firstname
             if (!firstNameDictionary.TryGetValue(request.FirstName, out List<FileCabinetRecord>? nameList))
             {
@@ -59,10 +60,10 @@ namespace filecabinet
         /// <summary>
         /// Returns array with records or empty array
         /// </summary>
-        public FileCabinetRecord[] GetRecords()
+        public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
-            if (list.Count == 0) return Array.Empty<FileCabinetRecord>();
-            else return this.list.ToArray();
+            if (_list.Count == 0) return ReadOnlyCollection<FileCabinetRecord>.Empty;
+            else return new ReadOnlyCollection<FileCabinetRecord>(_list);
         }
         /// <summary>
         /// Shows quantity of records
@@ -70,8 +71,8 @@ namespace filecabinet
         /// <returns></returns>
         public int GetStat()
         {
-            if (list.Count == 0) return 0;
-            else return this.list.Count;
+            if (_list.Count == 0) return 0;
+            else return new ReadOnlyCollection<FileCabinetRecord>(_list).Count;
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace filecabinet
             }
             newList.Add(record);
         }
-        private FileCabinetRecord? FindById(int id) => list.FirstOrDefault(x => x.Id == id);
+        private FileCabinetRecord? FindById(int id) => _list.FirstOrDefault(x => x.Id == id);
         public void EditRecord(RecordRequest request)
         {
             if(request == null) throw new ArgumentNullException(nameof(request));
@@ -131,7 +132,7 @@ namespace filecabinet
 
 
 
-        public FileCabinetRecord[] FindByField(string fieldName, string value)
+        public ReadOnlyCollection<FileCabinetRecord> FindByField(string fieldName, string value)
         {
             if (string.IsNullOrWhiteSpace(fieldName))
             {
@@ -140,7 +141,7 @@ namespace filecabinet
 
             if (value == null)
             {
-                return Array.Empty<FileCabinetRecord>();
+                return ReadOnlyCollection<FileCabinetRecord>.Empty;
             }
 
             switch (fieldName.ToLowerInvariant())
@@ -148,28 +149,28 @@ namespace filecabinet
                 case "firstname":
                     if (firstNameDictionary.TryGetValue(value, out var firstNameList))
                     {
-                        return firstNameList.ToArray();
+                        return new ReadOnlyCollection<FileCabinetRecord>(firstNameList);
                     }
                     break;
 
                 case "lastname":
                     if (lastNameDictionary.TryGetValue(value, out var lastNameList))
                     {
-                        return lastNameList.ToArray();
+                        return new ReadOnlyCollection<FileCabinetRecord>(lastNameList);
                     }
                     break;
 
                 case "dateofbirth":
                     if (dateOfBirthDictionary.TryGetValue(value, out var dateList))
                     {
-                        return dateList.ToArray();
+                        return new ReadOnlyCollection<FileCabinetRecord>(dateList);
                     }
                     break;
 
                 default:
                     throw new ArgumentException($"Field '{fieldName}' isn't supported", nameof(fieldName));
             }
-            return Array.Empty<FileCabinetRecord>();
+            return ReadOnlyCollection<FileCabinetRecord>.Empty;
         }
 
     }
