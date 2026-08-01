@@ -15,7 +15,18 @@ namespace filecabinet
         protected IRecordValidator validator;
         public FileCabinetService(IRecordValidator validator) { this.validator = validator; }
 
-
+        private static void AddToIndex(
+            Dictionary<string, List<FileCabinetRecord>> dictionary,
+            string key,
+            FileCabinetRecord record)
+        {
+            if (!dictionary.TryGetValue(key, out var list))
+            {
+                list = new List<FileCabinetRecord>();
+                dictionary.Add(key, list);
+            }
+            list.Add(record);
+        }
 
         /// <summary>
         /// This method allows to create records
@@ -45,15 +56,11 @@ namespace filecabinet
             };
 
             _list.Add(record);
-            //nameList is the List with records satisfying firstname
-            if (!firstNameDictionary.TryGetValue(request.FirstName, out List<FileCabinetRecord>? nameList))
-            {
-                nameList = new List<FileCabinetRecord>();
-                firstNameDictionary.Add(request.FirstName, nameList);
-                lastNameDictionary.Add(request.LastName, nameList);
-                dateOfBirthDictionary.Add(request.DateOfBirth.ToString(culture), nameList);
-            }
-            nameList.Add(record);
+            
+            AddToIndex(firstNameDictionary, request.FirstName, record);
+            AddToIndex(lastNameDictionary, request.FirstName, record);
+            AddToIndex(dateOfBirthDictionary, request.DateOfBirth.ToString(culture), record);
+            
 
             return record.Id;
         }
