@@ -18,7 +18,7 @@ namespace filecabinet
                 throw new ArgumentException("Date of birth is not specified", nameof(request.DateOfBirth));
 
             if (request.DateOfBirth < new DateTime(1950, 1, 1) || request.DateOfBirth > DateTime.Today)
-                throw new ArgumentException("Invalid date of birth", nameof(request.DateOfBirth));
+                throw new ArgumentOutOfRangeException("Invalid date of birth", nameof(request.DateOfBirth));
 
             if (request.ArchiveId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(request.ArchiveId), "Archive ID must be positive");
@@ -28,6 +28,7 @@ namespace filecabinet
 
             if (request.Type == ' ')
                 throw new ArgumentException("Type cannot be empty/space", nameof(request.Type));
+            
         }
     }
 }

@@ -58,7 +58,7 @@ namespace filecabinet
             _list.Add(record);
             
             AddToIndex(firstNameDictionary, request.FirstName, record);
-            AddToIndex(lastNameDictionary, request.FirstName, record);
+            AddToIndex(lastNameDictionary, request.LastName, record);
             AddToIndex(dateOfBirthDictionary, request.DateOfBirth.ToString(culture), record);
             
 
@@ -114,6 +114,7 @@ namespace filecabinet
         public void EditRecord(RecordRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
+            this.validator.ValidateParameters(request);
             FileCabinetRecord? recordToUpdate = FindById(request.Id);
 
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");

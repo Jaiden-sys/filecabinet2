@@ -56,7 +56,7 @@ namespace Tests
         {
             var invalidDateOfBirthRequest = new RecordRequest(3, "Joe", "Ivanov", invalidDate, 23, 120, 'a');
 
-            Assert.Throws<ArgumentException>(() => Validator.ValidateParameters(invalidDateOfBirthRequest));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Validator.ValidateParameters(invalidDateOfBirthRequest));
 
         }
         [Fact]

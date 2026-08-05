@@ -7,66 +7,134 @@ namespace TestProject1
 {
     public class ServiceTest
     {
-        private readonly Mock<IRecordValidator> _validatorMock;
         private readonly FileCabinetService _service;
+        private readonly RecordRequest _validRecord;
 
         public ServiceTest()
         {
-            _validatorMock = new Mock<IRecordValidator>();
-            _validatorMock.Setup( v => v.ValidateParameters(It.IsAny<RecordRequest>()))
-                .Verifiable();
-            _service = new FileCabinetService(_validatorMock.Object);
+            _validRecord = new RecordRequest(
+                Id: 0,
+                FirstName: "Test",
+                LastName: "Jaiden",
+                DateOfBirth: new DateTime(1950, 1, 2),
+                ArchiveId: 12,
+                Weight: 120m,
+                Type: 'A'
+            );
+            _service = new FileCabinetService(new DefaultValidator());
         }
 
         [Fact]
         public void CreateRecord_ValidInput()
         {
-            //Arrange
-            var record = new RecordRequest(Id: 1,
-                FirstName: "Test",
-                LastName: "Jaiden",
-                DateOfBirth: new DateTime(1950, 01, 02),
-                ArchiveId: 12,
-                Weight: 120,
-                Type: 'A');
+            // Act
+            int id = _service.CreateRecord(_validRecord);
 
-            //Act
+            // Assert
+            var records = _service.GetRecords();
+            Assert.Single(records);
 
-            _service.CreateRecord(record);
+            var firstRecord = records[0];
+            Assert.Equal(id, firstRecord.Id);
+            Assert.Equal("Test", firstRecord.FirstName);
+        }
 
-            //Assert
-            _validatorMock.Verify(v => v.ValidateParameters(record), Times.Once);
+        [Fact]
+        public void CreateRecord_InvalidInputNullNames()
+        {
+            // Arrange
+            var invalidNameRecord = _validRecord with { FirstName = null, LastName = null };
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => _service.CreateRecord(invalidNameRecord));
 
             var records = _service.GetRecords();
-
-            Assert.Single(records);
-            
-
-            var firstrecord = records.First();
-            Assert.Equal(1, firstrecord.Id);
-            Assert.Equal("Test", firstrecord.FirstName);
+            Assert.Empty(records);
         }
-        /*
         [Fact]
-        
-        public void CreateRecord_InvalidInput() 
+        public void CreateRecord_InvalidInputEmptyNames()
         {
-            //Arrange
-            var invalidRecord = new RecordRequest(
-                Id: -255,
-                FirstName: " ",
-                LastName: "Z",
-                DateOfBirth: new DateTime(1945, 09, 09),
-                ArchiveId: -1,
-                Weight: -2,
-                Type: ' ');
-            _validatorMock
-                .Setup(v => v.ValidateParameters(invalidRecord))
-                .Throws(new )
-            //Act
-            _service.CreateRecord(invalidRecord);
+            // Arrange
+            var emptyNameRecord = _validRecord with { FirstName = " ", LastName = " " };
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => _service.CreateRecord(emptyNameRecord));
+
+            var records = _service.GetRecords();
+            Assert.Empty(records);
         }
-        */
+
+        [Fact]
+        public void CreateValidRecordTwice()
+        {
+            // Act
+            _service.CreateRecord(_validRecord);
+            _service.CreateRecord(_validRecord);
+
+            // Assert
+            var records = _service.GetRecords();
+            Assert.Equal(2, records.Count);
+            Assert.Equal(2, records[1].Id);
+        }
+
+        [Fact]
+        public void EditRecord_ValidRequest_UpdatesFields()
+        {
+            // Arrange
+            int id = _service.CreateRecord(_validRecord);
+            var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
+
+            // Act
+            _service.EditRecord(updated);
+
+            // Assert
+            var records = _service.GetRecords();
+            Assert.Single(records);
+
+            var record = records[0];
+            Assert.Equal(id, record.Id);
+            Assert.Equal("Roman", record.FirstName);
+            Assert.Equal("Petrov", record.LastName);
+            Assert.Equal(new DateTime(1995, 5, 5), record.DateOfBirth);
+            Assert.Equal(2, record.ArchiveId);
+            Assert.Equal(80m, record.Weight);
+            Assert.Equal('B', record.Type);
+        }
+        [Fact]
+        public void EditRecord_NotExistingId_ThrowsArgumentException()
+        {
+            // Arrange
+            var request = _validRecord with { Id = 999 };
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => _service.EditRecord(request));
+        }
+
+        [Fact]
+        public void EditRecord_InvalidNewData_ThrowsAndKeepsOldData()
+        {
+            // Arrange
+            int id = _service.CreateRecord(_validRecord);
+            var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => _service.EditRecord(invalid));
+
+            var record = _service.GetRecords()[0];
+            Assert.Equal("Test", record.FirstName);
+            Assert.Equal("Jaiden", record.LastName);
+            Assert.Equal(new DateTime(1950, 1, 2), record.DateOfBirth);
+            Assert.Equal(12, record.ArchiveId);
+            Assert.Equal(120m, record.Weight);
+            Assert.Equal('A', record.Type);
+        }
+
+        [Fact]
+        public void EditRecord_NullRequest_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => _service.EditRecord(null!));
+        }
 
     }
 }
