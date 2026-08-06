@@ -6,28 +6,28 @@ using filecabinet;
 using Moq;
 namespace TestProject1
 {
-    public class ServiceTest
+    public abstract class FileCabinetServiceContractTests
     {
-        private readonly IFileCabinetService _service = new FileCabinetService(new DefaultValidator());
+        protected abstract IFileCabinetService CreateService();
+
         private static readonly RecordRequest ValidRecord = new(
-        Id: 0,
-        FirstName: "Test",
-        LastName: "Jaiden",
-        DateOfBirth: new DateTime(1950, 1, 2),
-        ArchiveId: 12,
-        Weight: 120m,
-        Type: 'A'
+            Id: 0,
+            FirstName: "Test",
+            LastName: "Jaiden",
+            DateOfBirth: new DateTime(1950, 1, 2),
+            ArchiveId: 12,
+            Weight: 120m,
+            Type: 'A'
         );
-        
 
         [Fact]
         public void CreateRecord_ValidInput()
         {
-            // Act
-            int id = _service.CreateRecord(ValidRecord);
+            var service = CreateService();
 
-            // Assert
-            var records = _service.GetRecords();
+            int id = service.CreateRecord(ValidRecord);
+
+            var records = service.GetRecords();
             Assert.Single(records);
 
             var firstRecord = records[0];
@@ -38,37 +38,32 @@ namespace TestProject1
         [Fact]
         public void CreateRecord_InvalidInputNullNames()
         {
-            // Arrange
+            var service = CreateService();
             var invalidNameRecord = ValidRecord with { FirstName = null, LastName = null };
 
-            // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => _service.CreateRecord(invalidNameRecord));
-
-            var records = _service.GetRecords();
-            Assert.Empty(records);
+            Assert.Throws<ArgumentNullException>(() => service.CreateRecord(invalidNameRecord));
+            Assert.Empty(service.GetRecords());
         }
+
         [Fact]
         public void CreateRecord_InvalidInputEmptyNames()
         {
-            // Arrange
+            var service = CreateService();
             var emptyNameRecord = ValidRecord with { FirstName = " ", LastName = " " };
 
-            // Act & Assert
-            Assert.Throws<ArgumentException>(() => _service.CreateRecord(emptyNameRecord));
-
-            var records = _service.GetRecords();
-            Assert.Empty(records);
+            Assert.Throws<ArgumentException>(() => service.CreateRecord(emptyNameRecord));
+            Assert.Empty(service.GetRecords());
         }
 
         [Fact]
         public void CreateValidRecordTwice()
         {
-            // Act
-            _service.CreateRecord(ValidRecord);
-            _service.CreateRecord(ValidRecord);
+            var service = CreateService();
 
-            // Assert
-            var records = _service.GetRecords();
+            service.CreateRecord(ValidRecord);
+            service.CreateRecord(ValidRecord);
+
+            var records = service.GetRecords();
             Assert.Equal(2, records.Count);
             Assert.Equal(2, records[1].Id);
         }
@@ -76,18 +71,13 @@ namespace TestProject1
         [Fact]
         public void EditRecord_ValidRequest_UpdatesFields()
         {
-            // Arrange
-            int id = _service.CreateRecord(ValidRecord);
+            var service = CreateService();
+            int id = service.CreateRecord(ValidRecord);
             var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
 
-            // Act
-            _service.EditRecord(updated);
+            service.EditRecord(updated);
 
-            // Assert
-            var records = _service.GetRecords();
-            Assert.Single(records);
-
-            var record = records[0];
+            var record = service.GetRecords()[0];
             Assert.Equal(id, record.Id);
             Assert.Equal("Roman", record.FirstName);
             Assert.Equal("Petrov", record.LastName);
@@ -96,27 +86,26 @@ namespace TestProject1
             Assert.Equal(80m, record.Weight);
             Assert.Equal('B', record.Type);
         }
+
         [Fact]
         public void EditRecord_NotExistingId_ThrowsArgumentException()
         {
-            // Arrange
+            var service = CreateService();
             var request = ValidRecord with { Id = 999 };
 
-            // Act & Assert
-            Assert.Throws<ArgumentException>(() => _service.EditRecord(request));
+            Assert.Throws<ArgumentException>(() => service.EditRecord(request));
         }
 
         [Fact]
         public void EditRecord_InvalidNewData_ThrowsAndKeepsOldData()
         {
-            // Arrange
-            int id = _service.CreateRecord(ValidRecord);
+            var service = CreateService();
+            int id = service.CreateRecord(ValidRecord);
             var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
 
-            // Act & Assert
-            Assert.Throws<ArgumentException>(() => _service.EditRecord(invalid));
+            Assert.Throws<ArgumentException>(() => service.EditRecord(invalid));
 
-            var record = _service.GetRecords()[0];
+            var record = service.GetRecords()[0];
             Assert.Equal("Test", record.FirstName);
             Assert.Equal("Jaiden", record.LastName);
             Assert.Equal(new DateTime(1950, 1, 2), record.DateOfBirth);
@@ -128,116 +117,105 @@ namespace TestProject1
         [Fact]
         public void EditRecord_NullRequest_ThrowsArgumentNullException()
         {
-            // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => _service.EditRecord(null!));
+            var service = CreateService();
+
+            Assert.Throws<ArgumentNullException>(() => service.EditRecord(null!));
         }
-        /*
-неподдерживаемое поле → ArgumentException
-null/пробелы в fieldName → ArgumentNullException
-null value → пустая коллекция
-совпадений нет → пустая коллекция
-GetRecords / GetStat:
-пустой сервис → пустая коллекция / 0
-после созданий → все записи / верное число
-2. Тесты конвертеров ConsoleReader
-Это чистые функции, тестируются без консоли:
-StringConverter: " abc " → (true, "abc"); "" и null → false
-DecimalConverter: "70.5" → true; "abc" → false
-DateTimeConverter: "1990-01-01" → true; "текст" → false
-ShortConverter: "5" → true; "abc" → false
-CharConverter: "A" → true; "AB" → false
-         */
 
         [Fact]
         public void FindByField_Firstname()
         {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
 
-            //Act
-            var foundRecord = _service.FindByField("firstname", ValidRecord.FirstName);
+            var found = service.FindByField("firstname", ValidRecord.FirstName);
 
-            //Assert
-            Assert.Single(foundRecord);
+            Assert.Single(found);
         }
+
         [Fact]
         public void FindByField_Lastname()
         {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
 
-            //Act
-            var foundRecord = _service.FindByField("lastname", ValidRecord.LastName);
+            var found = service.FindByField("lastname", ValidRecord.LastName);
 
-            //Assert
-            Assert.Single(foundRecord);
+            Assert.Single(found);
         }
-        [Fact]
-        public void FindByField_dateofbirth()
-        {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
 
-            //Act
-            var foundRecord = _service.FindByField("dateofbirth", ValidRecord.DateOfBirth.ToString(CultureInfo.InvariantCulture));
+        [Fact]
+        public void FindByField_DateOfBirth()
+        {
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
 
-            //Assert
-            Assert.Single(foundRecord);
-        }
-        [Fact]
-        public void FindByField_invalidField()
-        {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
+            var found = service.FindByField("dateofbirth", ValidRecord.DateOfBirth.ToString(CultureInfo.InvariantCulture));
 
-            //Act and Assert
-            Assert.Throws<ArgumentException>( () => _service.FindByField("invalidfield", ValidRecord.FirstName));
+            Assert.Single(found);
         }
+
         [Fact]
-        public void FindByField_whiteSpacesField()
+        public void FindByField_InvalidField()
         {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
-            //Act and Assert
-            Assert.Throws<ArgumentNullException>(() => _service.FindByField(" ",ValidRecord.LastName));
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
+
+            Assert.Throws<ArgumentException>(() => service.FindByField("invalidfield", ValidRecord.FirstName));
         }
+
         [Fact]
-        public void FindByField_nullValue()
+        public void FindByField_WhiteSpacesField()
         {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
-            //Act and Assert
-            Assert.Empty(_service.FindByField("firstname", null));
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
+
+            Assert.Throws<ArgumentNullException>(() => service.FindByField(" ", ValidRecord.LastName));
         }
+
         [Fact]
-        public void FindByField_emptyvalue()
+        public void FindByField_NullValue()
         {
-            //Arrange
-            _service.CreateRecord(ValidRecord);
-            //Act and Assert
-            Assert.Empty(_service.FindByField("firstname", " "));
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
+
+            Assert.Empty(service.FindByField("firstname", null));
         }
+
+        [Fact]
+        public void FindByField_EmptyValue()
+        {
+            var service = CreateService();
+            service.CreateRecord(ValidRecord);
+
+            Assert.Empty(service.FindByField("firstname", " "));
+        }
+
         [Fact]
         public void GetRecords_EmptyService_ReturnsEmptyCollection()
         {
-            Assert.Empty(_service.GetRecords());
+            var service = CreateService();
+
+            Assert.Empty(service.GetRecords());
         }
 
         [Fact]
         public void GetStat_EmptyService_ReturnsZero()
         {
-            Assert.Equal(0, _service.GetStat());
+            var service = CreateService();
+
+            Assert.Equal(0, service.GetStat());
         }
 
         [Fact]
         public void GetRecords_AfterCreates_ReturnsAllRecordsInOrder()
         {
-            // Act
-            _service.CreateRecord(ValidRecord);
-            _service.CreateRecord(ValidRecord with { FirstName = "Roman" });
+            var service = CreateService();
 
-            // Assert
-            var records = _service.GetRecords();
+            service.CreateRecord(ValidRecord);
+            service.CreateRecord(ValidRecord with { FirstName = "Roman" });
+
+            var records = service.GetRecords();
             Assert.Equal(2, records.Count);
             Assert.Equal("Test", records[0].FirstName);
             Assert.Equal("Roman", records[1].FirstName);
@@ -246,13 +224,20 @@ CharConverter: "A" → true; "AB" → false
         [Fact]
         public void GetStat_AfterCreates_ReturnsRecordsCount()
         {
-            // Act
-            _service.CreateRecord(ValidRecord);
-            _service.CreateRecord(ValidRecord);
-            _service.CreateRecord(ValidRecord);
+            var service = CreateService();
 
-            // Assert
-            Assert.Equal(3, _service.GetStat());
+            service.CreateRecord(ValidRecord);
+            service.CreateRecord(ValidRecord);
+            service.CreateRecord(ValidRecord);
+
+            Assert.Equal(3, service.GetStat());
         }
     }
+
+    public class InMemoryFileCabinetServiceTests : FileCabinetServiceContractTests
+    {
+        protected override IFileCabinetService CreateService()
+            => new FileCabinetService(new DefaultValidator());
+    }
+
 }
