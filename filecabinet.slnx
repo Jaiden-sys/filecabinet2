@@ -1,3 +1,10 @@
 <Solution>
-  <Project Path="filecabinet.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/filecabinet/filecabinet.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/testproject1/">
+    <Project Path="tests/testproject1/TestProject1.csproj" />
+  </Folder>
+  
 </Solution>

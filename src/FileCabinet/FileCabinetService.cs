@@ -14,7 +14,7 @@ namespace filecabinet
         protected readonly CultureInfo culture = CultureInfo.InvariantCulture;
         protected IRecordValidator validator;
         public FileCabinetService(IRecordValidator validator) { this.validator = validator; }
-
+        private int _nextId = 1;
         private static void AddToIndex(
             Dictionary<string, List<FileCabinetRecord>> dictionary,
             string key,
@@ -46,7 +46,7 @@ namespace filecabinet
             this.validator.ValidateParameters(request);
             var record = new FileCabinetRecord
             {
-                Id = this._list.Count + 1,
+                Id = this._nextId++,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 DateOfBirth = request.DateOfBirth,
@@ -58,7 +58,7 @@ namespace filecabinet
             _list.Add(record);
             
             AddToIndex(firstNameDictionary, request.FirstName, record);
-            AddToIndex(lastNameDictionary, request.FirstName, record);
+            AddToIndex(lastNameDictionary, request.LastName, record);
             AddToIndex(dateOfBirthDictionary, request.DateOfBirth.ToString(culture), record);
             
 
@@ -114,6 +114,7 @@ namespace filecabinet
         public void EditRecord(RecordRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
+            this.validator.ValidateParameters(request);
             FileCabinetRecord? recordToUpdate = FindById(request.Id);
 
             if (recordToUpdate == null) throw new ArgumentException("Not found (id)");
