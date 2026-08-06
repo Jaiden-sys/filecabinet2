@@ -122,10 +122,10 @@ namespace filecabinet
         private static void Create(string parameters)
         {
             Console.Write("First name: ");
-            string firstName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
+            string firstName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
 
             Console.Write("Last name: ");
-            string lastName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
+            string lastName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
 
             Console.Write("Date of birth, format (YYYY-MM-DD): ");
             DateTime dateOfBirth = ConsoleReader.ReadInput(ConsoleReader.DateTimeConverter);
@@ -173,10 +173,10 @@ namespace filecabinet
             }
 
             Console.Write("New first name: ");
-            string firstName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
+            string firstName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
 
             Console.Write("New last name: ");
-            string lastName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
+            string lastName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
 
             Console.Write("New date of birth, format (YYYY-MM-DD): ");
             DateTime dateOfBirth = ConsoleReader.ReadInput(ConsoleReader.DateTimeConverter);

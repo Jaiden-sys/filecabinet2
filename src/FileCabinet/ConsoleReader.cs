@@ -21,7 +21,7 @@ namespace filecabinet
             }
         }
 
-        public static Func<string, Tuple<bool, string, string>> stringConverter = input =>
+        public static Func<string, Tuple<bool, string, string>> StringConverter = input =>
         {
             if (!string.IsNullOrWhiteSpace(input))
                 return Tuple.Create(true, string.Empty, input.Trim());
@@ -30,7 +30,7 @@ namespace filecabinet
 
         public static Func<string, Tuple<bool, string, decimal>> DecimalConverter = input =>
         {
-            if (decimal.TryParse(input, out var result))
+            if (decimal.TryParse(input,CultureInfo.InvariantCulture, out var result))
                 return Tuple.Create(true, string.Empty, result);
             return Tuple.Create(false, "Invalid decimal format", 0m);
         };
