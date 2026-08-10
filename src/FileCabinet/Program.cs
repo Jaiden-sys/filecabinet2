@@ -139,7 +139,7 @@ namespace filecabinet
             Console.Write("Type(char): ");
             char type = ConsoleReader.ReadInput(ConsoleReader.CharConverter);
 
-            var request = new RecordRequest(0, firstName, lastName, dateOfBirth, archiveId, weight, type);
+            var request = new RecordRequest(0, firstName, lastName, dateOfBirth, archiveId, weight, type, isDeleted: false);
 
             try
             {
@@ -190,7 +190,7 @@ namespace filecabinet
             Console.Write("New type(char): ");
             char type = ConsoleReader.ReadInput(ConsoleReader.CharConverter);
 
-            var request = new RecordRequest(id, firstName, lastName, dateOfBirth, archiveId, weight, type);
+            var request = new RecordRequest(id, firstName, lastName, dateOfBirth, archiveId, weight, type, isDeleted: false);
 
             try
             {

@@ -16,5 +16,6 @@ namespace filecabinet
         public short ArchiveId { get; set; }
         public decimal Weight { get; set; }
         public char Type {  get; set; }
+        public bool isDeleted { get; set; }
     }
 }

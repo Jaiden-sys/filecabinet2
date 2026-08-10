@@ -9,5 +9,6 @@ namespace filecabinet
         ReadOnlyCollection<FileCabinetRecord> FindByField(string fieldName, string value);
         ReadOnlyCollection<FileCabinetRecord> GetRecords();
         int GetStat();
+        void RemoveRecord(int id);
     }
 }
