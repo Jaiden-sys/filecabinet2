@@ -4,7 +4,6 @@ using System.Text;
 
 namespace filecabinet
 {
-    internal interface IOriginator
-    {
-    }
+    public interface IMemento { }
+
 }

@@ -14,7 +14,15 @@ namespace filecabinet
         private static bool isRunning = true;
 
         private static readonly IRecordValidator validator = new DefaultValidator();
-        private static readonly IFileCabinetService fileCabinetService = new FileCabinetService(validator);
+        private static readonly FileCabinetService serviceCore =
+            new FileCabinetService(validator);
+
+        private static readonly IFileCabinetService fileCabinetService =
+            serviceCore;
+
+        private static readonly IUndoOriginator originator =
+            serviceCore;
+
 
         private static readonly Tuple<string, Action<string>>[] commands =
         {
@@ -24,7 +32,9 @@ namespace filecabinet
             new Tuple<string, Action<string>>("create", Create),
             new Tuple<string, Action<string>>("list", List),
             new Tuple<string, Action<string>>("edit", Edit),
-            new Tuple<string, Action<string>>("find", Find)
+            new Tuple<string, Action<string>>("find", Find),
+            new Tuple<string, Action<string>>("remove", Remove),
+            new Tuple<string, Action<string>>("undo",Undo)
         };
 
         private static readonly string[][] helpMessages =
@@ -35,7 +45,9 @@ namespace filecabinet
             new[] { "create", "creates new record", "The 'create' command creates new record in app" },
             new[] { "list", "shows list of all records created in app", "The 'list' command shows the list of all records" },
             new[] { "edit", "edits chosen record", "The 'edit' command edits records" },
-            new[] { "find", "finds record", "The 'find' command allows you to find record" }
+            new[] { "find", "finds record", "The 'find' command allows you to find record" },
+            new[] {"remove", "removes chosen record from list", "The 'remove' command allows you to delete record" },
+            new[] {"undo",  "undo last operation","Use this command to undo last operation"}
         };
 
         public static void Main(string[] args)
@@ -148,7 +160,7 @@ namespace filecabinet
             }
             catch (ArgumentException ex)
             {
-               
+
                 Console.WriteLine($"Error: {ex.Message}");
                 Console.WriteLine("Please try again.");
             }
@@ -245,6 +257,34 @@ namespace filecabinet
             {
                 Console.WriteLine("No records found.");
             }
+        }
+        private static readonly UndoCaretaker caretaker = new UndoCaretaker();
+        public static void Remove(string parameters)
+        {
+            if (!int.TryParse(parameters, out int id))
+            {
+                Console.WriteLine("Invalid id.");
+                return;
+            }
+
+            try
+            {
+                var memento = originator.CreateMemento();
+                fileCabinetService.RemoveRecord(id);
+                caretaker.Save(memento);
+                Console.WriteLine($"Record #{id} was removed");
+            }
+            catch (Exception ex) { Console.WriteLine(ex.Message); }
+        }
+        private static void Undo(string parameters)
+        {
+            if (!caretaker.CanUndo)
+            {
+                Console.WriteLine("Nothing to undo");
+                return;
+            }
+            originator.Restore(caretaker.Undo());
+            Console.WriteLine("Last operation was undo");
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace filecabinet
 {
-    public class FileCabinetService : IFileCabinetService, IOriginator
+    public class FileCabinetService : IFileCabinetService, IUndoOriginator
     {
         private readonly List<FileCabinetRecord> _list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
@@ -188,7 +188,7 @@ namespace filecabinet
             }
             foundRecord.isDeleted = true;
         }
-        public interface IMemento { }
+        
         public IMemento CreateMemento()
         {
             var snapshot = _list.Select(r => new FileCabinetRecord
@@ -204,9 +204,31 @@ namespace filecabinet
             }).ToList();
             return new ConcreteMemento(snapshot);
         }
+        public void Restore(IMemento memento)
+        {
+            if (memento is not ConcreteMemento concreteMememento)
+            {
+                throw new ArgumentException("Unknown memento type.", nameof(memento));
+            }
 
+            _list.Clear();
+            _list.AddRange(concreteMememento.State);
+            RebuildIndices();
+        }
+        private void RebuildIndices()
+        {
+            firstNameDictionary.Clear();
+            lastNameDictionary.Clear();
+            dateOfBirthDictionary.Clear();
 
-        private class ConcreteMemento : IMemento
+            foreach (var record in _list)
+            {
+                AddToIndex(firstNameDictionary, record.FirstName, record);
+                AddToIndex(lastNameDictionary, record.LastName, record);
+                AddToIndex(dateOfBirthDictionary, record.DateOfBirth.ToString(culture), record);
+            }
+        }
+        private sealed class ConcreteMemento : IMemento
         {
             public List<FileCabinetRecord> State { get; }
             public ConcreteMemento(List<FileCabinetRecord> state) => State = state;
