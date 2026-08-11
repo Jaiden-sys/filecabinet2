@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace filecabinet
 {
-    public class FileCabinetService : IFileCabinetService
+    public class FileCabinetService : IFileCabinetService, IUndoOriginator
     {
         private readonly List<FileCabinetRecord> _list = new List<FileCabinetRecord>();
         protected readonly Dictionary<string, List<FileCabinetRecord>> firstNameDictionary = new Dictionary<string, List<FileCabinetRecord>>();
@@ -69,8 +69,7 @@ namespace filecabinet
         /// </summary>
         public ReadOnlyCollection<FileCabinetRecord> GetRecords()
         {
-            if (_list.Count == 0) return ReadOnlyCollection<FileCabinetRecord>.Empty;
-            else return new ReadOnlyCollection<FileCabinetRecord>(_list);
+            return _list.Where(x => !x.isDeleted).ToList().AsReadOnly();
         }
         /// <summary>
         /// Shows quantity of records
@@ -79,7 +78,7 @@ namespace filecabinet
         public int GetStat()
         {
             if (_list.Count == 0) return 0;
-            else return new ReadOnlyCollection<FileCabinetRecord>(_list).Count;
+            else return _list.Where(x => !x.isDeleted).ToList().AsReadOnly().Count;
         }
 
         /// <summary>
@@ -110,10 +109,10 @@ namespace filecabinet
             }
             newList.Add(record);
         }
-        private FileCabinetRecord? FindById(int id) => _list.FirstOrDefault(x => x.Id == id);
+        private FileCabinetRecord? FindById(int id) => _list.FirstOrDefault(x => (x.Id == id && x.isDeleted == false));
         public void EditRecord(RecordRequest request)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
+            ArgumentNullException.ThrowIfNull(request);
             this.validator.ValidateParameters(request);
             FileCabinetRecord? recordToUpdate = FindById(request.Id);
 
@@ -157,21 +156,21 @@ namespace filecabinet
                 case "firstname":
                     if (firstNameDictionary.TryGetValue(value, out var firstNameList))
                     {
-                        return new ReadOnlyCollection<FileCabinetRecord>(firstNameList);
+                        return firstNameList.Where(x => !x.isDeleted).ToList().AsReadOnly();
                     }
                     break;
 
                 case "lastname":
                     if (lastNameDictionary.TryGetValue(value, out var lastNameList))
                     {
-                        return new ReadOnlyCollection<FileCabinetRecord>(lastNameList);
+                        return lastNameList.Where(x => !x.isDeleted).ToList().AsReadOnly();
                     }
                     break;
 
                 case "dateofbirth":
                     if (dateOfBirthDictionary.TryGetValue(value, out var dateList))
                     {
-                        return new ReadOnlyCollection<FileCabinetRecord>(dateList);
+                        return dateList.Where(x => !x.isDeleted).ToList().AsReadOnly();
                     }
                     break;
 
@@ -180,6 +179,59 @@ namespace filecabinet
             }
             return ReadOnlyCollection<FileCabinetRecord>.Empty;
         }
+        public void RemoveRecord(int id)
+        {
+            var foundRecord = FindById(id);
+            if (foundRecord == null) 
+            {
+                throw new ArgumentException("Not found id");
+            }
+            foundRecord.isDeleted = true;
+        }
+        
+        public IMemento CreateMemento()
+        {
+            var snapshot = _list.Select(r => new FileCabinetRecord
+            {
+                Id = r.Id,
+                FirstName = r.FirstName,
+                LastName = r.LastName,
+                DateOfBirth = r.DateOfBirth,
+                ArchiveId = r.ArchiveId,
+                Weight = r.Weight,
+                Type = r.Type,
+                isDeleted = r.isDeleted,
+            }).ToList();
+            return new ConcreteMemento(snapshot);
+        }
+        public void Restore(IMemento memento)
+        {
+            if (memento is not ConcreteMemento concreteMememento)
+            {
+                throw new ArgumentException("Unknown memento type.", nameof(memento));
+            }
 
+            _list.Clear();
+            _list.AddRange(concreteMememento.State);
+            RebuildIndices();
+        }
+        private void RebuildIndices()
+        {
+            firstNameDictionary.Clear();
+            lastNameDictionary.Clear();
+            dateOfBirthDictionary.Clear();
+
+            foreach (var record in _list)
+            {
+                AddToIndex(firstNameDictionary, record.FirstName, record);
+                AddToIndex(lastNameDictionary, record.LastName, record);
+                AddToIndex(dateOfBirthDictionary, record.DateOfBirth.ToString(culture), record);
+            }
+        }
+        private sealed class ConcreteMemento : IMemento
+        {
+            public List<FileCabinetRecord> State { get; }
+            public ConcreteMemento(List<FileCabinetRecord> state) => State = state;
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace TestProject1
             DateOfBirth: new DateTime(1950, 1, 2),
             ArchiveId: 12,
             Weight: 120m,
-            Type: 'A'
+            Type: 'A',
+            isDeleted: false
         );
 
         [Fact]
@@ -73,7 +74,7 @@ namespace TestProject1
         {
             var service = CreateService();
             int id = service.CreateRecord(ValidRecord);
-            var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
+            var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B', false);
 
             service.EditRecord(updated);
 
@@ -101,7 +102,7 @@ namespace TestProject1
         {
             var service = CreateService();
             int id = service.CreateRecord(ValidRecord);
-            var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
+            var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B', false);
 
             Assert.Throws<ArgumentException>(() => service.EditRecord(invalid));
 
@@ -231,6 +232,34 @@ namespace TestProject1
             service.CreateRecord(ValidRecord);
 
             Assert.Equal(3, service.GetStat());
+        }
+        [Fact]
+        public void RemoveRecord_ExistingId_NotFoundAfterRemove()
+        {
+            var service = CreateService();
+            int id = service.CreateRecord(ValidRecord);
+
+            service.RemoveRecord(id);
+
+            Assert.Empty(service.GetRecords());
+        }
+
+        [Fact]
+        public void RemoveRecord_NotExistingId_ThrowsArgumentException()
+        {
+            var service = CreateService();
+
+            Assert.Throws<ArgumentException>(() => service.RemoveRecord(999));
+        }
+
+        [Fact]
+        public void RemoveRecord_AlreadyRemoved_ThrowsArgumentException()
+        {
+            var service = CreateService();
+            int id = service.CreateRecord(ValidRecord);
+            service.RemoveRecord(id);
+
+            Assert.Throws<ArgumentException>(() => service.RemoveRecord(id));
         }
     }
 
