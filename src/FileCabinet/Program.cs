@@ -1,10 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace filecabinet
 {
     public static class Program
     {
+        
         private const string DeveloperName = "Roman Eliseev";
         private const string HintMessage = "Enter your command, or enter 'help' to get help.";
         private const int CommandHelpIndex = 0;
@@ -52,6 +55,10 @@ namespace filecabinet
 
         public static void Main(string[] args)
         {
+            var options = new DbContextOptionsBuilder<FileCabinetDbContext>()
+                .UseSqlServer("Server=localhost;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
+                .Options;
+            var dbContext = new FileCabinetDbContext(options);
             Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
             Console.WriteLine(HintMessage);
             Console.WriteLine();

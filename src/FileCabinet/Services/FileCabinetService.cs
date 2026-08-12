@@ -143,7 +143,7 @@ namespace filecabinet
         {
             if (string.IsNullOrWhiteSpace(fieldName))
             {
-                throw new ArgumentNullException(nameof(fieldName), "Имя поля не может быть пустым");
+                throw new ArgumentNullException(nameof(fieldName), "fieldname cannot be empty");
             }
 
             if (value == null)
