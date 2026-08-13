@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Cryptography;
-
+using filecabinet;
 namespace filecabinet
 {
     public static class Program
@@ -15,16 +15,19 @@ namespace filecabinet
         private const int ExplanationHelpIndex = 2;
 
         private static bool isRunning = true;
-
+        private static DbContextOptions<FileCabinetDbContext> options = new DbContextOptionsBuilder<FileCabinetDbContext>()
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
+            .Options;
+        private static FileCabinetDbContext? dbContext = new FileCabinetDbContext(options);
         private static readonly IRecordValidator validator = new DefaultValidator();
-        private static readonly FileCabinetService serviceCore =
-            new FileCabinetService(validator);
+        private static readonly EfFileCabinetService serviceCore =
+            new EfFileCabinetService(validator, dbContext);
 
         private static readonly IFileCabinetService fileCabinetService =
             serviceCore;
 
-        private static readonly IUndoOriginator originator =
-            serviceCore;
+        //private static readonly IUndoOriginator originator =
+          //  serviceCore;
 
 
         private static readonly Tuple<string, Action<string>>[] commands =
@@ -35,9 +38,9 @@ namespace filecabinet
             new Tuple<string, Action<string>>("create", Create),
             new Tuple<string, Action<string>>("list", List),
             new Tuple<string, Action<string>>("edit", Edit),
-            new Tuple<string, Action<string>>("find", Find),
-            new Tuple<string, Action<string>>("remove", Remove),
-            new Tuple<string, Action<string>>("undo",Undo)
+            new Tuple<string, Action<string>>("find", Find)
+            //new Tuple<string, Action<string>>("remove", Remove),
+            //new Tuple<string, Action<string>>("undo",Undo)
         };
 
         private static readonly string[][] helpMessages =
@@ -55,10 +58,7 @@ namespace filecabinet
 
         public static void Main(string[] args)
         {
-            var options = new DbContextOptionsBuilder<FileCabinetDbContext>()
-                .UseSqlServer("Server=localhost;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
-                .Options;
-            var dbContext = new FileCabinetDbContext(options);
+            
             Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
             Console.WriteLine(HintMessage);
             Console.WriteLine();
@@ -266,6 +266,7 @@ namespace filecabinet
             }
         }
         private static readonly UndoCaretaker caretaker = new UndoCaretaker();
+        /*
         public static void Remove(string parameters)
         {
             if (!int.TryParse(parameters, out int id))
@@ -293,5 +294,6 @@ namespace filecabinet
             originator.Restore(caretaker.Undo());
             Console.WriteLine("Last operation was undo");
         }
+        */
     }
 }

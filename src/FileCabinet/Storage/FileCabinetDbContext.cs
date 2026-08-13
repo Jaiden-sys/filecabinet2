@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using filecabinet;
 namespace filecabinet
 {
     public class FileCabinetDbContext : DbContext
@@ -15,7 +16,7 @@ namespace filecabinet
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<FileCabinetRecord>()
-                .HasQueryFilter(r => !r.IsDeleted);
+                .HasQueryFilter(r => !r.isDeleted);
         }
 
     }
