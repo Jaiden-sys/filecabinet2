@@ -38,9 +38,9 @@ namespace filecabinet
             new Tuple<string, Action<string>>("create", Create),
             new Tuple<string, Action<string>>("list", List),
             new Tuple<string, Action<string>>("edit", Edit),
-            new Tuple<string, Action<string>>("find", Find)
-            //new Tuple<string, Action<string>>("remove", Remove),
-            //new Tuple<string, Action<string>>("undo",Undo)
+            new Tuple<string, Action<string>>("find", Find),
+            new Tuple<string, Action<string>>("remove", Remove),
+            new Tuple<string, Action<string>>("restore",Restore)
         };
 
         private static readonly string[][] helpMessages =
@@ -53,7 +53,7 @@ namespace filecabinet
             new[] { "edit", "edits chosen record", "The 'edit' command edits records" },
             new[] { "find", "finds record", "The 'find' command allows you to find record" },
             new[] {"remove", "removes chosen record from list", "The 'remove' command allows you to delete record" },
-            new[] {"undo",  "undo last operation","Use this command to undo last operation"}
+            new[] {"restore",  "restores chosen record","Use this command to restore recordd"}
         };
 
         public static void Main(string[] args)
@@ -265,8 +265,8 @@ namespace filecabinet
                 Console.WriteLine("No records found.");
             }
         }
-        private static readonly UndoCaretaker caretaker = new UndoCaretaker();
-        /*
+        
+        
         public static void Remove(string parameters)
         {
             if (!int.TryParse(parameters, out int id))
@@ -274,26 +274,30 @@ namespace filecabinet
                 Console.WriteLine("Invalid id.");
                 return;
             }
-
             try
             {
-                var memento = originator.CreateMemento();
                 fileCabinetService.RemoveRecord(id);
-                caretaker.Save(memento);
                 Console.WriteLine($"Record #{id} was removed");
             }
-            catch (Exception ex) { Console.WriteLine(ex.Message); }
-        }
-        private static void Undo(string parameters)
-        {
-            if (!caretaker.CanUndo)
+            catch(ArgumentException ex)
             {
-                Console.WriteLine("Nothing to undo");
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+        private static void Restore(string parameters)
+        {
+            if (!int.TryParse(parameters, out int id))
+            {
+                Console.WriteLine("Invalid id.");
                 return;
             }
-            originator.Restore(caretaker.Undo());
-            Console.WriteLine("Last operation was undo");
+            try { fileCabinetService.RestoreRecord(id);
+                Console.WriteLine($"Record #{id} was restored"); }
+            catch(ArgumentException ex) 
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
-        */
+        
     }
 }

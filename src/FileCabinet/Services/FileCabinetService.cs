@@ -228,6 +228,7 @@ namespace filecabinet
                 AddToIndex(dateOfBirthDictionary, record.DateOfBirth.ToString(culture), record);
             }
         }
+        public void RestoreRecord(int id) { }
         private sealed class ConcreteMemento : IMemento
         {
             public List<FileCabinetRecord> State { get; }

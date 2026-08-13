@@ -46,6 +46,7 @@ namespace filecabinet
             else return context.Records.AsNoTracking().ToList().AsReadOnly().Count;
         }
         private FileCabinetRecord? FindById(int id) => context.Records.Where(x => x.Id == id).FirstOrDefault();
+        private FileCabinetRecord? FindByIdIncludingDeleted(int id) => context.Records.IgnoreQueryFilters().Where(x => x.Id == id).FirstOrDefault();
         public void EditRecord(RecordRequest request)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -108,5 +109,13 @@ namespace filecabinet
             foundRecord.isDeleted = true;
             context.SaveChanges();
         }
+        public void RestoreRecord(int id)
+        {
+            var foundRecord = FindByIdIncludingDeleted(id);
+            if (foundRecord == null || foundRecord.isDeleted == false) throw new ArgumentException("Not found id or record with current id isn't deleted");
+            foundRecord.isDeleted = false;
+            context.SaveChanges();
+        }
+        
     }
 }
