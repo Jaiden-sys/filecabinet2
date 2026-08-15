@@ -1,8 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using filecabinet;
+using filecabinet.Storage;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
-using filecabinet;
 namespace filecabinet
 {
     public static class Program
@@ -15,35 +18,19 @@ namespace filecabinet
         private const int ExplanationHelpIndex = 2;
 
         private static bool isRunning = true;
-        private static DbContextOptions<FileCabinetDbContext> options = new DbContextOptionsBuilder<FileCabinetDbContext>()
-            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
-            .Options;
-        private static FileCabinetDbContext? dbContext = new FileCabinetDbContext(options);
-        private static readonly IRecordValidator validator = new DefaultValidator();
-        private static readonly EfFileCabinetService serviceCore =
-            new EfFileCabinetService(validator, dbContext);
+        
+    
+        private static IRecordValidator validator = null!;
+        private static IUndoOriginator? originator;
+        private static IRestorable? restorable;
+        private static UndoCaretaker caretaker = new();
+        private static Tuple<string, Action<string>>[] commands = null!;
 
-        private static readonly IFileCabinetService fileCabinetService =
-            serviceCore;
+        private static IFileCabinetService fileCabinetService = null!;
+        
 
-        //private static readonly IUndoOriginator originator =
-          //  serviceCore;
-
-
-        private static readonly Tuple<string, Action<string>>[] commands =
-        {
-            new Tuple<string, Action<string>>("help", PrintHelp),
-            new Tuple<string, Action<string>>("exit", Exit),
-            new Tuple<string, Action<string>>("stat", Stat),
-            new Tuple<string, Action<string>>("create", Create),
-            new Tuple<string, Action<string>>("list", List),
-            new Tuple<string, Action<string>>("edit", Edit),
-            new Tuple<string, Action<string>>("find", Find),
-            new Tuple<string, Action<string>>("remove", Remove),
-            new Tuple<string, Action<string>>("restore",Restore)
-        };
-
-        private static readonly string[][] helpMessages =
+        
+        private static List<string[]> helpMessages = new List<string[]>
         {
             new[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
             new[] { "exit", "exits the application", "The 'exit' command exits the application." },
@@ -51,45 +38,102 @@ namespace filecabinet
             new[] { "create", "creates new record", "The 'create' command creates new record in app" },
             new[] { "list", "shows list of all records created in app", "The 'list' command shows the list of all records" },
             new[] { "edit", "edits chosen record", "The 'edit' command edits records" },
-            new[] { "find", "finds record", "The 'find' command allows you to find record" },
-            new[] {"remove", "removes chosen record from list", "The 'remove' command allows you to delete record" },
-            new[] {"restore",  "restores chosen record","Use this command to restore recordd"}
+            new[] { "find", "finds record", "The 'find' command allows you to find record" }
         };
+        
 
         public static void Main(string[] args)
         {
-            
-            Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
-            Console.WriteLine(HintMessage);
-            Console.WriteLine();
-
-            do
+            string storageMode = "memory";
+            string validationMode = "default";
+            foreach (var arg in args)
             {
-                Console.Write("> ");
-                var line = Console.ReadLine();
-                var inputs = line != null ? line.Split(' ', 2) : new[] { string.Empty, string.Empty };
-                var command = inputs[0];
-
-                if (string.IsNullOrEmpty(command))
+                if (arg.StartsWith("--storage="))
                 {
-                    Console.WriteLine(HintMessage);
-                    continue;
+                    storageMode = arg["--storage=".Length..]; //slices
                 }
-
-                var index = Array.FindIndex(commands, 0, commands.Length,
-                    i => i.Item1.Equals(command, StringComparison.InvariantCultureIgnoreCase));
-
-                if (index >= 0)
+                else if (arg.StartsWith("--validation-rules="))
                 {
-                    var parameters = inputs.Length > 1 ? inputs[1] : string.Empty;
-                    commands[index].Item2(parameters);
-                }
-                else
-                {
-                    PrintMissedCommandInfo(command);
+                    validationMode = arg["--validation-rules=".Length..];
                 }
             }
-            while (isRunning);
+            validator = validationMode switch
+            {
+                "custom" => new CustomValidator(),
+                _ => new DefaultValidator(),
+            };
+            switch(storageMode)
+            {
+                case "efcore":
+                        var options = new DbContextOptionsBuilder<FileCabinetDbContext>()
+                            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
+                            .Options;
+                    var dbContext = new FileCabinetDbContext(options);
+                    var efService = new EfFileCabinetService(validator, dbContext);
+                    fileCabinetService = efService;
+                    restorable = efService;
+                    break;
+                default:
+                    var memoryService = new FileCabinetService(validator);
+
+                    fileCabinetService = memoryService;
+                    originator = memoryService;
+                    break;
+            }
+            var commandList = new List<Tuple<string, Action<string>>>
+            {
+                Tuple.Create<string, Action<string>>("help", PrintHelp),
+                Tuple.Create<string, Action<string>>("exit", Exit),
+                Tuple.Create<string, Action<string>>("stat", Stat),
+                Tuple.Create<string, Action<string>>("create", Create),
+                Tuple.Create<string, Action<string>>("list", List),
+                Tuple.Create<string, Action<string>>("edit", Edit),
+                Tuple.Create<string, Action<string>>("find", Find),
+                Tuple.Create<string, Action<string>>("remove", Remove),
+            };
+            if(originator is not null)
+            {
+                commandList.Add(Tuple.Create<string, Action<string>>("undo", Undo));
+                helpMessages.Add(new[] { "Undo", "Undoes last operation", "Use 'undo' command to revert last changes" });
+            }
+            if(restorable is not null)
+            {
+                commandList.Add(Tuple.Create<string, Action<string>>("restore", Restore));
+                helpMessages.Add(new[] { "Restore", "Restores record deletion", "Use 'restore' command to cancel deletion" });
+            }
+            commands = commandList.ToArray();
+            Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
+                Console.WriteLine(HintMessage);
+                Console.WriteLine();
+
+                do
+                {
+                    Console.Write("> ");
+                    var line = Console.ReadLine();
+                    var inputs = line != null ? line.Split(' ', 2) : new[] { string.Empty, string.Empty };
+                    var command = inputs[0];
+
+                    if (string.IsNullOrEmpty(command))
+                    {
+                        Console.WriteLine(HintMessage);
+                        continue;
+                    }
+
+                    var index = Array.FindIndex(commands, 0, commands.Length,
+                        i => i.Item1.Equals(command, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (index >= 0)
+                    {
+                        var parameters = inputs.Length > 1 ? inputs[1] : string.Empty;
+                        commands[index].Item2(parameters);
+                    }
+                    else
+                    {
+                        PrintMissedCommandInfo(command);
+                    }
+                }
+                while (isRunning);
+            
         }
 
         private static void PrintMissedCommandInfo(string command)
@@ -102,7 +146,7 @@ namespace filecabinet
         {
             if (!string.IsNullOrEmpty(parameters))
             {
-                var index = Array.FindIndex(helpMessages, 0, helpMessages.Length,
+                var index = helpMessages.FindIndex(
                     i => string.Equals(i[CommandHelpIndex], parameters, StringComparison.InvariantCultureIgnoreCase));
 
                 if (index >= 0)
@@ -276,6 +320,10 @@ namespace filecabinet
             }
             try
             {
+                if (originator is not null)
+                {
+                    caretaker.Save(originator.CreateMemento());
+                }
                 fileCabinetService.RemoveRecord(id);
                 Console.WriteLine($"Record #{id} was removed");
             }
@@ -286,7 +334,7 @@ namespace filecabinet
         }
         private static void Restore(string parameters)
         {
-            if (!int.TryParse(parameters, out int id))
+            if (restorable is null || !int.TryParse(parameters, out int id))
             {
                 Console.WriteLine("Invalid id.");
                 return;
@@ -298,6 +346,17 @@ namespace filecabinet
                 Console.WriteLine($"Error: {ex.Message}");
             }
         }
-        
+        private static void Undo(string parameters)
+        {
+            if (originator is null || !caretaker.CanUndo)
+            {
+                Console.WriteLine("Nothing to undo.");
+                return;
+            }
+            
+            originator.Restore(caretaker.Undo());
+            Console.WriteLine("Last operation was undo");
+        }
+
     }
 }
