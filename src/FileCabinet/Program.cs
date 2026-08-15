@@ -1,10 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-
+using System.Security.Cryptography;
+using filecabinet;
 namespace filecabinet
 {
     public static class Program
     {
+        
         private const string DeveloperName = "Roman Eliseev";
         private const string HintMessage = "Enter your command, or enter 'help' to get help.";
         private const int CommandHelpIndex = 0;
@@ -12,16 +15,19 @@ namespace filecabinet
         private const int ExplanationHelpIndex = 2;
 
         private static bool isRunning = true;
-
+        private static DbContextOptions<FileCabinetDbContext> options = new DbContextOptionsBuilder<FileCabinetDbContext>()
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FileCabinet;Trusted_Connection=True;TrustServerCertificate=True;")
+            .Options;
+        private static FileCabinetDbContext? dbContext = new FileCabinetDbContext(options);
         private static readonly IRecordValidator validator = new DefaultValidator();
-        private static readonly FileCabinetService serviceCore =
-            new FileCabinetService(validator);
+        private static readonly EfFileCabinetService serviceCore =
+            new EfFileCabinetService(validator, dbContext);
 
         private static readonly IFileCabinetService fileCabinetService =
             serviceCore;
 
-        private static readonly IUndoOriginator originator =
-            serviceCore;
+        //private static readonly IUndoOriginator originator =
+          //  serviceCore;
 
 
         private static readonly Tuple<string, Action<string>>[] commands =
@@ -34,7 +40,7 @@ namespace filecabinet
             new Tuple<string, Action<string>>("edit", Edit),
             new Tuple<string, Action<string>>("find", Find),
             new Tuple<string, Action<string>>("remove", Remove),
-            new Tuple<string, Action<string>>("undo",Undo)
+            new Tuple<string, Action<string>>("restore",Restore)
         };
 
         private static readonly string[][] helpMessages =
@@ -47,11 +53,12 @@ namespace filecabinet
             new[] { "edit", "edits chosen record", "The 'edit' command edits records" },
             new[] { "find", "finds record", "The 'find' command allows you to find record" },
             new[] {"remove", "removes chosen record from list", "The 'remove' command allows you to delete record" },
-            new[] {"undo",  "undo last operation","Use this command to undo last operation"}
+            new[] {"restore",  "restores chosen record","Use this command to restore recordd"}
         };
 
         public static void Main(string[] args)
         {
+            
             Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
             Console.WriteLine(HintMessage);
             Console.WriteLine();
@@ -151,7 +158,7 @@ namespace filecabinet
             Console.Write("Type(char): ");
             char type = ConsoleReader.ReadInput(ConsoleReader.CharConverter);
 
-            var request = new RecordRequest(0, firstName, lastName, dateOfBirth, archiveId, weight, type, isDeleted: false);
+            var request = new RecordRequest(0, firstName, lastName, dateOfBirth, archiveId, weight, type);
 
             try
             {
@@ -202,7 +209,7 @@ namespace filecabinet
             Console.Write("New type(char): ");
             char type = ConsoleReader.ReadInput(ConsoleReader.CharConverter);
 
-            var request = new RecordRequest(id, firstName, lastName, dateOfBirth, archiveId, weight, type, isDeleted: false);
+            var request = new RecordRequest(id, firstName, lastName, dateOfBirth, archiveId, weight, type);
 
             try
             {
@@ -258,7 +265,8 @@ namespace filecabinet
                 Console.WriteLine("No records found.");
             }
         }
-        private static readonly UndoCaretaker caretaker = new UndoCaretaker();
+        
+        
         public static void Remove(string parameters)
         {
             if (!int.TryParse(parameters, out int id))
@@ -266,25 +274,30 @@ namespace filecabinet
                 Console.WriteLine("Invalid id.");
                 return;
             }
-
             try
             {
-                var memento = originator.CreateMemento();
                 fileCabinetService.RemoveRecord(id);
-                caretaker.Save(memento);
                 Console.WriteLine($"Record #{id} was removed");
             }
-            catch (Exception ex) { Console.WriteLine(ex.Message); }
-        }
-        private static void Undo(string parameters)
-        {
-            if (!caretaker.CanUndo)
+            catch(ArgumentException ex)
             {
-                Console.WriteLine("Nothing to undo");
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+        private static void Restore(string parameters)
+        {
+            if (!int.TryParse(parameters, out int id))
+            {
+                Console.WriteLine("Invalid id.");
                 return;
             }
-            originator.Restore(caretaker.Undo());
-            Console.WriteLine("Last operation was undo");
+            try { fileCabinetService.RestoreRecord(id);
+                Console.WriteLine($"Record #{id} was restored"); }
+            catch(ArgumentException ex) 
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
         }
+        
     }
 }

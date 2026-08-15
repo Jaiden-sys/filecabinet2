@@ -11,6 +11,5 @@ namespace filecabinet
             DateTime DateOfBirth,
             short ArchiveId,
             decimal Weight,
-            char Type,
-            bool isDeleted);
+            char Type);
 }

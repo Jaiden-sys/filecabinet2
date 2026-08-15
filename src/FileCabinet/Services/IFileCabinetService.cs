@@ -10,5 +10,6 @@ namespace filecabinet
         ReadOnlyCollection<FileCabinetRecord> GetRecords();
         int GetStat();
         void RemoveRecord(int id);
+        void RestoreRecord(int id);
     }
 }

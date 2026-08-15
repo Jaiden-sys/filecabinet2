@@ -11,7 +11,7 @@ namespace Tests
     {
         //Arrange
         private static readonly RecordRequest ValidRequest = new(
-            3, "Joe", "Ivanov", new DateTime(1950, 02, 12), 23, 120, 'a', false);
+            3, "Joe", "Ivanov", new DateTime(1950, 02, 12), 23, 120, 'a');
         private static readonly DefaultValidator Validator = new DefaultValidator();
         //Positive test
         [Fact]
@@ -54,7 +54,7 @@ namespace Tests
         [MemberData(nameof(GetInvalidDates))]
         public void ValidateInvalidDateOfBirth(DateTime invalidDate)
         {
-            var invalidDateOfBirthRequest = new RecordRequest(3, "Joe", "Ivanov", invalidDate, 23, 120, 'a', false);
+            var invalidDateOfBirthRequest = new RecordRequest(3, "Joe", "Ivanov", invalidDate, 23, 120, 'a');
 
             Assert.Throws<ArgumentOutOfRangeException>(() => Validator.ValidateParameters(invalidDateOfBirthRequest));
 
