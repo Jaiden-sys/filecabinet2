@@ -10,15 +10,14 @@ namespace TestProject1
     {
         protected abstract IFileCabinetService CreateService();
 
-        private static readonly RecordRequest ValidRecord = new(
+        protected static readonly RecordRequest ValidRecord = new(
             Id: 0,
             FirstName: "Test",
             LastName: "Jaiden",
             DateOfBirth: new DateTime(1950, 1, 2),
             ArchiveId: 12,
             Weight: 120m,
-            Type: 'A',
-            isDeleted: false
+            Type: 'A'
         );
 
         [Fact]
@@ -74,7 +73,7 @@ namespace TestProject1
         {
             var service = CreateService();
             int id = service.CreateRecord(ValidRecord);
-            var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B', false);
+            var updated = new RecordRequest(id, "Roman", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
 
             service.EditRecord(updated);
 
@@ -102,7 +101,7 @@ namespace TestProject1
         {
             var service = CreateService();
             int id = service.CreateRecord(ValidRecord);
-            var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B', false);
+            var invalid = new RecordRequest(id, "R", "Petrov", new DateTime(1995, 5, 5), 2, 80m, 'B');
 
             Assert.Throws<ArgumentException>(() => service.EditRecord(invalid));
 
@@ -261,6 +260,7 @@ namespace TestProject1
 
             Assert.Throws<ArgumentException>(() => service.RemoveRecord(id));
         }
+ 
     }
 
     public class InMemoryFileCabinetServiceTests : FileCabinetServiceContractTests

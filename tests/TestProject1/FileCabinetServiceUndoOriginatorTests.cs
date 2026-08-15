@@ -13,8 +13,7 @@ namespace TestProject1
             DateOfBirth: new DateTime(1950, 1, 2),
             ArchiveId: 12,
             Weight: 120m,
-            Type: 'A',
-            isDeleted: false
+            Type: 'A'      
         );
         [Fact]
         public void CreateMemento_ThenRestore_Reverts()
