@@ -94,12 +94,12 @@ namespace filecabinet
             if(originator is not null)
             {
                 commandList.Add(Tuple.Create<string, Action<string>>("undo", Undo));
-                helpMessages.Add(new[] { "Undo", "Undoes last operation", "Use 'undo' command to revert last changes" });
+                helpMessages.Add(new[] { "undo", "Undoes last operation", "Use 'undo' command to revert last changes" });
             }
             if(restorable is not null)
             {
                 commandList.Add(Tuple.Create<string, Action<string>>("restore", Restore));
-                helpMessages.Add(new[] { "Restore", "Restores record deletion", "Use 'restore' command to cancel deletion" });
+                helpMessages.Add(new[] { "restore", "Restores record deletion", "Use 'restore' command to cancel deletion" });
             }
             commands = commandList.ToArray();
             Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
@@ -341,7 +341,7 @@ namespace filecabinet
             }
             try { fileCabinetService.RestoreRecord(id);
                 Console.WriteLine($"Record #{id} was restored"); }
-            catch(ArgumentException ex) 
+            catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
