@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using filecabinet.Storage;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace filecabinet
 {
-    public class EfFileCabinetService : IFileCabinetService
+    public class EfFileCabinetService : IFileCabinetService, IRestorable
     {
         private readonly FileCabinetDbContext context;
         private readonly IRecordValidator validator;
