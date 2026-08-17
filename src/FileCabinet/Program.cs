@@ -27,10 +27,10 @@ namespace filecabinet
         private static Tuple<string, Action<string>>[] commands = null!;
 
         private static IFileCabinetService fileCabinetService = null!;
-        
 
-        
-        private static List<string[]> helpMessages = new List<string[]>
+
+
+        internal static List<string[]> helpMessages = new List<string[]>
         {
             new[] { "help", "prints the help screen", "The 'help' command prints the help screen." },
             new[] { "exit", "exits the application", "The 'exit' command exits the application." },
@@ -38,7 +38,8 @@ namespace filecabinet
             new[] { "create", "creates new record", "The 'create' command creates new record in app" },
             new[] { "list", "shows list of all records created in app", "The 'list' command shows the list of all records" },
             new[] { "edit", "edits chosen record", "The 'edit' command edits records" },
-            new[] { "find", "finds record", "The 'find' command allows you to find record" }
+            new[] { "find", "finds record", "The 'find' command allows you to find record" },
+            new[] {"remove", "removes record", "The 'remove command removes record"}
         };
         
 
@@ -185,10 +186,10 @@ namespace filecabinet
         private static void Create(string parameters)
         {
             Console.Write("First name: ");
-            string firstName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
+            string firstName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
 
             Console.Write("Last name: ");
-            string lastName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
+            string lastName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
 
             Console.Write("Date of birth, format (YYYY-MM-DD): ");
             DateTime dateOfBirth = ConsoleReader.ReadInput(ConsoleReader.DateTimeConverter);
@@ -236,10 +237,10 @@ namespace filecabinet
             }
 
             Console.Write("New first name: ");
-            string firstName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
+            string firstName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
 
             Console.Write("New last name: ");
-            string lastName = ConsoleReader.ReadInput(ConsoleReader.StringConverter);
+            string lastName = ConsoleReader.ReadInput(ConsoleReader.stringConverter);
 
             Console.Write("New date of birth, format (YYYY-MM-DD): ");
             DateTime dateOfBirth = ConsoleReader.ReadInput(ConsoleReader.DateTimeConverter);

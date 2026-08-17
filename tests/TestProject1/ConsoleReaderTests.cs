@@ -9,7 +9,7 @@ namespace TestProject1
         [Fact]
         public void StringConverter_NonEmptyInput_TrimAndReturnsTrue()
         {
-            var result = ConsoleReader.StringConverter("   abc ");
+            var result = ConsoleReader.stringConverter("   abc ");
 
             Assert.True(result.Item1);
             Assert.Equal("abc",result.Item3);
@@ -20,7 +20,7 @@ namespace TestProject1
         [InlineData(null)]
         public void StringConverter_EmptyOrWhitespaceInput_ReturnsFalse(string input)
         {
-            var result = ConsoleReader.StringConverter(input);
+            var result = ConsoleReader.stringConverter(input);
 
             Assert.False(result.Item1);
             Assert.Equal(string.Empty, result.Item3);

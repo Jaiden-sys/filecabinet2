@@ -21,7 +21,7 @@ namespace filecabinet
             }
         }
 
-        public static Func<string, Tuple<bool, string, string>> StringConverter = input =>
+        public static Func<string, Tuple<bool, string, string>> stringConverter = input =>
         {
             if (!string.IsNullOrWhiteSpace(input))
                 return Tuple.Create(true, string.Empty, input.Trim());
