@@ -7,7 +7,7 @@ namespace filecabinet.Commands
     public class UndoCommand : ICommand
     {
         public string Name => "undo";
-        public string HelpText => "undoes last operation";
+        public string HelpText => "undoes last deletion";
         private readonly IFileCabinetService _service;
         private readonly IUndoOriginator _originator;
         private readonly UndoCaretaker _caretaker;

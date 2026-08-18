@@ -9,9 +9,9 @@ namespace filecabinet.Commands
         public string Name => "list";
         public string HelpText => "Show list of created records";
         private readonly IFileCabinetService _service;
-        public ListCommand() 
+        public ListCommand(IFileCabinetService service) 
         {
-            this._service = _service;
+            _service = service;
         }
         public void Execute(string parameters)
         {

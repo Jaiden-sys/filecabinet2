@@ -11,7 +11,7 @@ namespace filecabinet.Commands
         private readonly IFileCabinetService _service;
         public EditCommand(IFileCabinetService service)
         {
-            this._service = service;
+            _service = service;
         }
         public void Execute(string parameters)
         {

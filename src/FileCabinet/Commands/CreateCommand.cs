@@ -10,7 +10,7 @@ namespace filecabinet.Commands
         public string Name => "create";
         public string HelpText => "Creates new record";
         private readonly IFileCabinetService _service;
-        CreateCommand(IFileCabinetService service)
+        public CreateCommand(IFileCabinetService service)
         {
             this._service = service;
         }

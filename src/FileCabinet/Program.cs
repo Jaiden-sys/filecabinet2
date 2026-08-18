@@ -6,6 +6,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Windows.Input;
+using filecabinet.Commands;
 namespace filecabinet
 {
     public static class Program
@@ -45,7 +47,7 @@ namespace filecabinet
 
         public static void Main(string[] args)
         {
-            string storageMode = "memory";
+            string storageMode = "efcore";
             string validationMode = "default";
             foreach (var arg in args)
             {
@@ -81,28 +83,31 @@ namespace filecabinet
                     originator = memoryService;
                     break;
             }
-            var commandList = new List<Tuple<string, Action<string>>>
+            
+            var commandPatternList = new List<Commands.ICommand>();
+            var helpCommand = new HelpCommand(commandPatternList);
+            commandPatternList.Add(helpCommand);
+            commandPatternList.Add(new CreateCommand(fileCabinetService));
+            commandPatternList.Add(new EditCommand(fileCabinetService));
+            commandPatternList.Add(new StatCommand(fileCabinetService));
+            commandPatternList.Add(new FindCommand(fileCabinetService));
+            commandPatternList.Add(new ListCommand(fileCabinetService));
+            commandPatternList.Add(new RemoveCommand(fileCabinetService,originator,caretaker));
+            commandPatternList.Add(new ExitCommand());
+
+            if (originator is not null)
             {
-                Tuple.Create<string, Action<string>>("help", PrintHelp),
-                Tuple.Create<string, Action<string>>("exit", Exit),
-                Tuple.Create<string, Action<string>>("stat", Stat),
-                Tuple.Create<string, Action<string>>("create", Create),
-                Tuple.Create<string, Action<string>>("list", List),
-                Tuple.Create<string, Action<string>>("edit", Edit),
-                Tuple.Create<string, Action<string>>("find", Find),
-                Tuple.Create<string, Action<string>>("remove", Remove),
-            };
-            if(originator is not null)
-            {
-                commandList.Add(Tuple.Create<string, Action<string>>("undo", Undo));
+                
+                commandPatternList.Add(new UndoCommand(fileCabinetService, originator, caretaker));
                 helpMessages.Add(new[] { "undo", "Undoes last operation", "Use 'undo' command to revert last changes" });
             }
             if(restorable is not null)
             {
-                commandList.Add(Tuple.Create<string, Action<string>>("restore", Restore));
+                
+                commandPatternList.Add(new RestoreCommand(restorable, fileCabinetService));
                 helpMessages.Add(new[] { "restore", "Restores record deletion", "Use 'restore' command to cancel deletion" });
             }
-            commands = commandList.ToArray();
+            
             Console.WriteLine($"File Cabinet Application, developed by {DeveloperName}");
                 Console.WriteLine(HintMessage);
                 Console.WriteLine();
@@ -120,13 +125,13 @@ namespace filecabinet
                         continue;
                     }
 
-                    var index = Array.FindIndex(commands, 0, commands.Length,
-                        i => i.Item1.Equals(command, StringComparison.InvariantCultureIgnoreCase));
+                    var index = Array.FindIndex(commandPatternList.ToArray(), 0, commandPatternList.Count,
+                        i => i.Name.Equals(command, StringComparison.InvariantCultureIgnoreCase));
 
                     if (index >= 0)
                     {
                         var parameters = inputs.Length > 1 ? inputs[1] : string.Empty;
-                        commands[index].Item2(parameters);
+                        commandPatternList[index].Execute(parameters);
                     }
                     else
                     {
