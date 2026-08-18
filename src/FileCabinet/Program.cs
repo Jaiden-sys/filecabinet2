@@ -15,9 +15,6 @@ namespace filecabinet
         
         private const string DeveloperName = "Roman Eliseev";
         private const string HintMessage = "Enter your command, or enter 'help' to get help.";
-        private const int CommandHelpIndex = 0;
-        private const int DescriptionHelpIndex = 1;
-        private const int ExplanationHelpIndex = 2;
 
         private static bool isRunning = true;
         
@@ -26,7 +23,7 @@ namespace filecabinet
         private static IUndoOriginator? originator;
         private static IRestorable? restorable;
         private static UndoCaretaker caretaker = new();
-        private static Tuple<string, Action<string>>[] commands = null!;
+        
 
         private static IFileCabinetService fileCabinetService = null!;
 
